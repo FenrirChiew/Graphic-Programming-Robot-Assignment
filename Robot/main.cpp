@@ -120,7 +120,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		//{
 		//	mode = -1;
 		//}
-		else if (wParam == ' ')
+		else if (wParam == ' ')	// Reset (Key Space Bar)
 		{
 			materialType = 1;
 			r = 2.0f;
