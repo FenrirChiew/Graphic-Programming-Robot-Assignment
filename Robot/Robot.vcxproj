@@ -157,6 +157,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="eye.bmp" />
     <Image Include="head.bmp" />
     <Image Include="lavaStone.bmp" />
     <Image Include="lavaStone2.bmp" />
