@@ -74,6 +74,8 @@ LPCSTR texFile = "tex.bmp";
 BITMAP BMP;
 HBITMAP hBMP = NULL;
 
+GLuint starStripTexture = 0;
+
 LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
@@ -581,32 +583,35 @@ void draw4PointedStarStrip(GLfloat radius, GLfloat depth)
 {
 	glBegin(GL_QUAD_STRIP);
 	{
-		glColor3f(0, 0, 1);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, starStripTexture);
+
+		//glColor3f(0, 0, 1);
 		glVertex3f(0.0f, radius, -depth / 2);
 		glVertex3f(0.0f, radius, depth / 2);
 
-		glColor3f(0, 0, 0);
+		//glColor3f(0, 0, 0);
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
 		glVertex3f(-radius, 0.0f, -depth / 2);
 		glVertex3f(-radius, 0.0f, depth / 2);
 
-		glColor3f(1, 0, 0);
+		//glColor3f(1, 0, 0);
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
 		glVertex3f(0.0f, -radius, -depth / 2);
 		glVertex3f(0.0f, -radius, depth / 2);
 
-		glColor3f(0, 1, 0);
+		//glColor3f(0, 1, 0);
 		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
 		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
 		glVertex3f(radius, 0.0f, -depth / 2);
 		glVertex3f(radius, 0.0f, depth / 2);
 
-		glColor3f(0, 0, 1);
+		//glColor3f(0, 0, 1);
 		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
 		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
@@ -1752,6 +1757,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow)
 	//	End initialization
 	//--------------------------------
 
+#pragma region TextureMapping
+	
+	setupTextures("starStrip.bmp", &starStripTexture);
+
+
+#pragma endregion
 
 	ShowWindow(hWnd, nCmdShow);
 
