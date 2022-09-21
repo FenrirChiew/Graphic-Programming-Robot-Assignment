@@ -157,6 +157,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="head.bmp" />
+    <Image Include="lavaStone.bmp" />
+    <Image Include="lavaStone2.bmp" />
+    <Image Include="metal.bmp" />
+    <Image Include="metal2.bmp" />
+    <Image Include="nailCover.bmp" />
+    <Image Include="nailMovement.bmp" />
     <Image Include="starStrip.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
