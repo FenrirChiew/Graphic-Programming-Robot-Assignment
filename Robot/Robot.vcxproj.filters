@@ -29,5 +29,26 @@
     <Image Include="starStrip.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="lavaStone.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="lavaStone2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="metal.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="nailCover.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="nailMovement.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="head.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="metal2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
