@@ -78,6 +78,25 @@ GLuint texTexture = 0;
 LPCSTR texFile = "tex.bmp";
 BITMAP BMP;
 HBITMAP hBMP = NULL;
+boolean onTexture = true;
+
+GLuint starStripTexture = 0;
+GLuint headTexture = 0;
+GLuint eyeTexture = 0;
+GLuint eyeTubeTexture = 0;
+GLuint lavaStoneTexture = 0;
+GLuint lavaStone2Texture = 0;
+GLuint metalTexture = 0;
+GLuint metal2Texture = 0;
+GLuint legTexture = 0;
+GLuint leg2Texture = 0;
+GLuint leg3Texture = 0;
+GLuint legTipTexture = 0;
+GLuint neckTexture = 0;
+GLuint metal3Texture = 0;
+GLuint metal4Texture = 0;
+GLuint mothEyeTexture = 0;
+GLuint mothEye2Texture = 0;
 
 LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -657,37 +676,63 @@ void draw4PointedStarStrip(GLfloat radius, GLfloat depth)
 {
 	glBegin(GL_QUAD_STRIP);
 	{
-		glColor3f(0, 0, 1);
-		glVertex3f(0.0f, radius, -depth / 2);
-		glVertex3f(0.0f, radius, depth / 2);
+		//glColor3f(1, 0, 1);
+		//top back
+		glTexCoord2f(1.0, 0); //right bottom 
+		glVertex3f(0.0f, radius, depth / 2); //Front
+		glTexCoord2f(1.0, 1.0); //right top 
+		glVertex3f(0.0f, radius, -depth / 2); //Back
 
-		glColor3f(0, 0, 0);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
-		glVertex3f(-radius, 0.0f, -depth / 2);
+		//glColor3f(1, 1, 1);
+		//bottom back
+		glTexCoord2f(0, 1.0); //left top
+		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2); //Back
+		glTexCoord2f(0, 0); //left bottom
+		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2); //Front 
+
+		//glColor3f(1, 0, 1);
+		//right back
+		glTexCoord2f(1.0, 0); //right bottom 
 		glVertex3f(-radius, 0.0f, depth / 2);
+		glTexCoord2f(1.0, 1.0); //right top 
+		glVertex3f(-radius, 0.0f, -depth / 2);
 
-		glColor3f(1, 0, 0);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
+		//glColor3f(1, 1, 1);
+		//left back
+		glTexCoord2f(0, 1.0); //left top
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
+		glTexCoord2f(0, 0); //left bottom
+		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
 
-		glVertex3f(0.0f, -radius, -depth / 2);
+		//glColor3f(0, 0, 0);
+		//bottom back
+		glTexCoord2f(1.0, 0); //right bottom 
 		glVertex3f(0.0f, -radius, depth / 2);
+		glTexCoord2f(1.0, 1.0); //right top 
+		glVertex3f(0.0f, -radius, -depth / 2);
 
-		glColor3f(0, 1, 0);
-		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
+		//glColor3f(1, 0, 0);
+		//Left back
+		glTexCoord2f(0, 1.0); //left top
 		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
+		glTexCoord2f(0, 0); //left bottom
+		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
 
-		glVertex3f(radius, 0.0f, -depth / 2);
+		glTexCoord2f(1.0, 0); //right bottom 
 		glVertex3f(radius, 0.0f, depth / 2);
-
-		glColor3f(0, 0, 1);
-		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(1.0, 1.0); //right top 
+		glVertex3f(radius, 0.0f, -depth / 2);
+		glTexCoord2f(0, 1.0); //left top
 		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
+		glTexCoord2f(0, 0); //left bottom
+		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
 
-		glVertex3f(0.0f, radius, -depth / 2);
+		//glColor3f(0, 0, 1);
+		glTexCoord2f(1.0, 0); //right bottom 
 		glVertex3f(0.0f, radius, depth / 2);
+		glTexCoord2f(1.0, 1.0); //right top 
+		glVertex3f(0.0f, radius, -depth / 2);
 	}
 	glEnd();
 }
@@ -699,44 +744,89 @@ void draw4PointedStar(GLfloat outerRadius, GLfloat innerRadius, GLfloat outerDep
 	glPushMatrix();
 	{
 		glTranslatef(0.0f, 0.0f, interval);
-		draw4PointedStarStrip(outerRadius, outerDepth);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, starStripTexture);
+			draw4PointedStarStrip(outerRadius, outerDepth);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
-	draw4PointedStarStrip(innerRadius, innerDepth);
-	glBegin(GL_QUAD_STRIP);
+
+	if (onTexture)
 	{
-		glColor3f(0, 0, 1);
-		glVertex3f(0.0f, outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, innerRadius, -innerDepth / 2);
-
-		glColor3f(0, 0, 0);
-		glVertex3f(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
-
-		glVertex3f(-outerRadius, 0.0f, -outerDepth / 2 + interval);
-		glVertex3f(-innerRadius, 0.0f, -innerDepth / 2);
-
-		glColor3f(1, 0, 0);
-		glVertex3f(-outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(-innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
-
-		glVertex3f(0.0f, -outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, -innerRadius, -innerDepth / 2);
-
-		glColor3f(0, 1, 0);
-		glVertex3f(outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
-
-		glVertex3f(outerRadius, 0.0f, -outerDepth / 2 + interval);
-		glVertex3f(innerRadius, 0.0f, -innerDepth / 2);
-
-		glColor3f(0, 0, 1);
-		glVertex3f(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
-
-		glVertex3f(0.0f, outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, innerRadius, -innerDepth / 2);
+		glEnable(GL_TEXTURE_2D);
 	}
+	{
+		glBindTexture(GL_TEXTURE_2D, starStripTexture);
+		draw4PointedStarStrip(innerRadius, innerDepth);
+	}
+	glDisable(GL_TEXTURE_2D);
+
+	if (onTexture)
+	{
+		glEnable(GL_TEXTURE_2D);
+	}
+	{
+		glBindTexture(GL_TEXTURE_2D, starStripTexture);
+
+		glBegin(GL_QUAD_STRIP);
+		{
+			//glColor3f(0, 0, 1);
+			glTexCoord2f(1.0, 0); //right bottom 
+			glVertex3f(0.0f, outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0); //right top 
+			glVertex3f(0.0f, innerRadius, -innerDepth / 2);
+
+			//glColor3f(0, 0, 0);
+			glTexCoord2f(0, 1.0); //left top
+			glVertex3f(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0); //left bottom
+			glVertex3f(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0); //right bottom 
+			glVertex3f(-outerRadius, 0.0f, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0); //right top 
+			glVertex3f(-innerRadius, 0.0f, -innerDepth / 2);
+
+			//glColor3f(1, 0, 0);
+			glTexCoord2f(0, 1.0); //left top
+			glVertex3f(-outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0); //left bottom
+			glVertex3f(-innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0); //right bottom 
+			glVertex3f(0.0f, -outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0); //right top 
+			glVertex3f(0.0f, -innerRadius, -innerDepth / 2);
+
+			//glColor3f(0, 1, 0);
+			glTexCoord2f(0, 1.0); //left top
+			glVertex3f(outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0); //left bottom
+			glVertex3f(innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0); //right bottom 
+			glVertex3f(outerRadius, 0.0f, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0); //right top 
+			glVertex3f(innerRadius, 0.0f, -innerDepth / 2);
+
+			//glColor3f(0, 0, 1);
+			glTexCoord2f(0, 1.0); //left top
+			glVertex3f(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0); //left bottom
+			glVertex3f(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0); //right bottom 
+			glVertex3f(0.0f, outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0); //right top 
+			glVertex3f(0.0f, innerRadius, -innerDepth / 2);
+		}
+	}
+	glDisable(GL_TEXTURE_2D);
 	glEnd();
 }
 
@@ -844,13 +934,21 @@ void draw4Kunais(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GL
 void drawEyeFrame(GLfloat eyeRadius, GLfloat starOuterRadius, GLfloat starInnerRadius, GLfloat starOuterDepth, GLfloat starInnerDepth, GLfloat gripRadius, GLfloat gripLength, GLfloat kunaiOuterRadius, GLfloat kunaiInnerRadius, GLfloat kunaiOuterDepth, GLfloat kunaiInnerDepth, GLfloat intervalx, GLfloat intervaly)
 {
 	GLUquadricObj* quad = gluNewQuadric();
-	gluQuadricDrawStyle(quad, GLU_FILL);
 
 	glPushMatrix();
 	{
-		glTranslatef(0.0f, 0.0f, eyeRadius / 2);
-		glColor3f(1.0f, 1.0f, 0.0f);
-		gluSphere(quad, eyeRadius, 20, 20);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glTranslatef(0.0f, 0.0f, eyeRadius / 2);
+			//glColor3f(1.0f, 1.0f, 0.0f);
+			glBindTexture(GL_TEXTURE_2D, eyeTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluSphere(quad, eyeRadius, 20, 20);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 	glPushMatrix();
@@ -872,31 +970,62 @@ void drawEyeTube(GLfloat radius, GLfloat height)
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
 
-	glColor3f(0, 0, 0);
-	gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
-	glPushMatrix();
+	if (onTexture)
 	{
-		glTranslatef(0.0f, 0.0f, height);
-		gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glPopMatrix();
-	glColor3f(0, 0, 0);
-	glPushMatrix();
 	{
-		glTranslatef(0.0f, 0.0f, height);	// height / 10.25
-		gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		glBindTexture(GL_TEXTURE_2D, lavaStoneTexture);
+		gluQuadricTexture(quad, GL_TRUE);
+		//glColor3f(0, 0, 0);
+		gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
+
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, height);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
 	}
-	glPopMatrix();
-	glColor3f(0, 0, 1);
-	gluDisk(quad, radius * 3 / 4, radius, tubeSlices, tubeStacks);
-	drawEyeFrame(0.05f, 0.2f, 0.15f, 0.01f, 0.015f, 0.01f, 0.05f, 0.065f, 0.045f, 0.01f, 0.015f, 0.125f, 0.125f);
-	glColor3f(0, 1, 1);
+	glDisable(GL_TEXTURE_2D);
+
+
+	if (onTexture)
+	{
+		glEnable(GL_TEXTURE_2D);
+	}
+	{
+		//glColor3f(0, 0, 1);
+		glBindTexture(GL_TEXTURE_2D, metal2Texture);
+		gluQuadricTexture(quad, GL_TRUE);
+		gluDisk(quad, radius * 3 / 4, radius, tubeSlices, tubeStacks);
+		gluQuadricTexture(quad, GL_TRUE);
+		drawEyeFrame(0.05f, 0.2f, 0.15f, 0.01f, 0.015f, 0.01f, 0.05f, 0.065f, 0.045f, 0.01f, 0.015f, 0.125f, 0.125f);
+	}
+	glDisable(GL_TEXTURE_2D);
+
+
+	//glColor3f(0, 1, 1); //Yellow eye 
+
 	glPushMatrix();
 	{
-		glTranslatef(0.0f, 0.0f, height / 6);
-		gluCylinder(quad, radius + 0.01, radius + 0.01, height * 5 / 6, tubeSlices, tubeStacks);
-		glColor3f(0, 0, 1);
-		gluDisk(quad, radius, radius + 0.01, tubeSlices, tubeStacks);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glTranslatef(0.0f, 0.0f, height / 6);
+			glBindTexture(GL_TEXTURE_2D, metalTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluCylinder(quad, radius + 0.01, radius + 0.01, height * 5 / 6, tubeSlices, tubeStacks);
+			//glColor3f(0, 0, 1);
+
+			gluQuadricTexture(quad, GL_TRUE);
+			gluDisk(quad, radius, radius + 0.01, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 }
@@ -905,6 +1034,8 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 {
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
+
+
 
 	// Trimmed Head
 	glPushMatrix();
@@ -932,10 +1063,22 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 					//glColor3f(1.0f, 0.0f, 0.0f);
 					//gluSphere(quad, radius + 0.005, headSlices, headStacks);
 					//gluQuadricDrawStyle(quad, GLU_FILL);
-					glColor3f(1.0f, 1.0f, 1.0f);
-					gluSphere(quad, radius, headSlices, headStacks);
+					//glColor3f(1.0f, 0.0f, 1.0f);
+
+
+					if (onTexture)
+					{
+						glEnable(GL_TEXTURE_2D);
+					}
+					{
+						glBindTexture(GL_TEXTURE_2D, mothEye2Texture);
+						gluQuadricTexture(quad, GL_TRUE);
+						gluSphere(quad, radius, headSlices, headStacks);
+					}
+					glDisable(GL_TEXTURE_2D);
 				}
 				glDisable(GL_CLIP_PLANE0);
+
 			}
 			glPopMatrix();
 		}
@@ -943,9 +1086,11 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 	}
 	glPopMatrix();
 
+
 	// Eye Tube
 	glPushMatrix();
 	{
+		gluQuadricTexture(quad, GL_TRUE);
 		glTranslatef(translatex, translatey + trimRadius * 4, translatez - trimRadius - radius);
 		drawEyeTube(sqrt(pow(radius, 2) - pow(radius - trimRadius, 2)), radius);
 	}
@@ -2074,6 +2219,27 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow)
 	setupLighting();
 	setupCamera();
 	//setupTextures(texFile, &texTexture);
+
+#pragma region TextureMapping
+
+	setupTextures("starStrip.bmp", &starStripTexture);
+	setupTextures("head.bmp", &headTexture);
+	setupTextures("eye.bmp", &eyeTexture);
+	setupTextures("metal.bmp", &metalTexture);
+	setupTextures("metal2.bmp", &metal2Texture);
+	setupTextures("metal4.bmp", &metal4Texture);
+	setupTextures("lavaStone.bmp", &lavaStoneTexture);
+	setupTextures("leg.bmp", &legTexture);
+	setupTextures("leg2.bmp", &leg2Texture);
+	setupTextures("leg3.bmp", &leg3Texture);
+	setupTextures("legTip.bmp", &legTipTexture);
+	setupTextures("lavaStone2.bmp", &lavaStone2Texture);
+	setupTextures("neck.bmp", &neckTexture);
+	setupTextures("mothEye.bmp", &mothEyeTexture);
+	setupTextures("mothEye2.bmp", &mothEye2Texture);
+
+
+#pragma endregion
 
 	while (true)
 	{
