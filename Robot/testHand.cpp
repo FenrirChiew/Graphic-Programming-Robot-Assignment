@@ -17,8 +17,8 @@ float frameNo = 100.0f;
 int mode = -1;
 GLint tubeSlices = 20;
 GLint tubeStacks = 20;
-float rotateFinger = 0.0f;
-float rotateTumb = 0.0f;
+float rotateFinger = 90.0f;
+float rotateTumb = 45.0f;
 float speed = 35.0f;
 float objectRotateX = 0.0f;
 float objectRotateY = 0.0f;
@@ -65,13 +65,13 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		else if (wParam == ' ')
 		{
 			mode = -1;
-			rotateFinger = 0.0f;
-			rotateTumb = 0.0f;
+			rotateFinger = 90.0f;
+			rotateTumb = 45.0f;
 			objectRotateX = 0.0f;
 			objectRotateY = 0.0f;
 			objectRotateZ = 0.0f;
 		}
-		
+
 		if (mode == 0)
 		{
 			if (wParam == 'W')
@@ -80,7 +80,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				{
 					rotateFinger += speed * elapsedSeconds;
 				}
-				if (rotateFinger < 45.0f)
+				if (rotateTumb < 45.0f)
 				{
 					rotateTumb += speed / 2 * elapsedSeconds;
 				}
@@ -219,7 +219,7 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 	glPopMatrix();
 }
 
-void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boolean isRight)
+void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolean isRight)
 {
 	GLfloat leftBasedRadius;
 	GLfloat rightBasedRadius;
@@ -237,33 +237,105 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 			leftBasedRadius = -basedRadius * 3;
 			rightBasedRadius = basedRadius * 2;
 		}
+
+		// Wrist
+		glColor3f(0, 1, 0);
+		glBegin(GL_QUADS);
+		{
+			if (isRight)
+			{
+				// Front Face
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
+
+				// Back Face
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, basedRadius);
+
+				// Left Face
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+
+				// Right Face
+				glVertex3f(rightBasedRadius, halfLength, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
+
+				// Top Face
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, basedRadius);
+			}
+			else
+			{
+				// Front Face
+				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+
+				// Back Face
+				glVertex3f(leftBasedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
+
+				// Left Face
+				glVertex3f(leftBasedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
+
+				// Right Face
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+
+				// Top Face
+				glVertex3f(leftBasedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
+			}
+		}
+		glEnd();
+
 		// Palm
 		glColor3f(1, 0, 0);
 		glBegin(GL_QUADS);
 		{
 			// Front Face
-			glVertex3f(leftBasedRadius, totalLength, -basedRadius);
+			glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
 			glVertex3f(leftBasedRadius, 0.0f, -basedRadius);
 			glVertex3f(rightBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, totalLength, -basedRadius);
+			glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Back Face
-			glVertex3f(leftBasedRadius, totalLength, basedRadius);
+			glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
 			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
 			glVertex3f(rightBasedRadius, 0.0f, basedRadius);
-			glVertex3f(rightBasedRadius, totalLength, basedRadius);
+			glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
 
 			// Left Face
-			glVertex3f(leftBasedRadius, totalLength, basedRadius);
+			glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
 			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
 			glVertex3f(leftBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(leftBasedRadius, totalLength, -basedRadius);
+			glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Right Face
-			glVertex3f(rightBasedRadius, totalLength, basedRadius);
+			glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
 			glVertex3f(rightBasedRadius, 0.0f, basedRadius);
 			glVertex3f(rightBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, totalLength, -basedRadius);
+			glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Bottom Face
 			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
@@ -274,7 +346,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 		glEnd();
 
 		// Middle Finger
-		drawFinger(basedRadius, topRadius, totalLength, false, isRight);
+		drawFinger(basedRadius, topRadius, halfLength, false, isRight);
 		glPushMatrix();
 		{
 			// Fore Finger
@@ -286,19 +358,19 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 			{
 				glTranslatef(basedRadius, 0.0f, 0.0f);
 			}
-			drawFinger(basedRadius, topRadius, totalLength * 0.85, false, isRight);
+			drawFinger(basedRadius, topRadius, halfLength * 0.85, false, isRight);
 			// Tumb
 			if (isRight)
 			{
-				glTranslatef(-basedRadius, totalLength * 0.5, 0.0f);
+				glTranslatef(-basedRadius, halfLength * 0.5, 0.0f);
 			}
 			else
 			{
-				glTranslatef(basedRadius, totalLength * 0.5, 0.0f);
+				glTranslatef(basedRadius, halfLength * 0.5, 0.0f);
 				glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
 				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 			}
-			drawFinger(basedRadius, topRadius, totalLength * 0.7, true, isRight);
+			drawFinger(basedRadius, topRadius, halfLength * 0.7, true, isRight);
 		}
 		glPopMatrix();
 		glPushMatrix();
@@ -312,7 +384,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 			{
 				glTranslatef(-basedRadius, 0.0f, 0.0f);
 			}
-			drawFinger(basedRadius, topRadius, totalLength * 0.85, false, isRight);
+			drawFinger(basedRadius, topRadius, halfLength * 0.85, false, isRight);
 			// Little Finger
 			if (isRight)
 			{
@@ -322,7 +394,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 			{
 				glTranslatef(-basedRadius, 0.0f, 0.0f);
 			}
-			drawFinger(basedRadius, topRadius, totalLength * 0.7, false, isRight);
+			drawFinger(basedRadius, topRadius, halfLength * 0.7, false, isRight);
 		}
 		glPopMatrix();
 	}
@@ -470,12 +542,8 @@ void display()
 	glRotatef(objectRotateY, 0.0, 1.0f, 0.0f);
 	glRotatef(objectRotateZ, 0.0, 0.0f, 1.0f);
 	glPushMatrix();
-	glTranslatef(-0.1f, 0.0f, 0.0f);
+	//glTranslatef(-0.1f, 0.0f, 0.0f);
 	drawHand(true);
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(0.1f, 0.0f, 0.0f);
-	drawHand(false);
 	glPopMatrix();
 	glPopMatrix();
 	//--------------------------------

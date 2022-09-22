@@ -43,19 +43,24 @@ GLint tubeStacks = 20;
 GLint kunaiSlices = 10;
 GLint kunaiStacks = 10;
 boolean isGrab = false;
-float rotateFinger = 0.0f;
-float rotateTumb = 0.0f;
+float rotateFinger = 90.0f;
+float rotateTumb = -45.0f;
 float rotateWheel = 0.0f;
 float rotateShoulderJointX = 0.0f;
 float rotateShoulderJointY = 0.0f;
 float rotateShoulderJointZ = 0.0f;
-float rotateArmJointX = 0.0f;
-float rotateArmJointY = 0.0f;
-float rotateArmJointZ = 0.0f;
-float rotateWrist = 0.0f;
-float speed = 35.0f;
+float rotateUpperArmJointX = 0.0f;
+float rotateUpperArmJointY = 0.0f;
+float rotateUpperArmJointZ = 0.0f;
+float rotateElbowJointX = 30.0f;
+float rotateElbowJointY = 0.0f;
+float rotateElbowJointZ = -90.0f;
+float rotateWristJointX = 0.0f;
+float rotateWristJointY = 5.0f;
+float rotateWristJointZ = 0.0f;
+float speed = 15.0f;
 
-//// Rotate Attributes
+// Rotate Attributes
 float objectRotateX = 0.0f;
 float objectRotateY = 0.0f;
 float objectRotateZ = 0.0f;
@@ -73,8 +78,6 @@ GLuint texTexture = 0;
 LPCSTR texFile = "tex.bmp";
 BITMAP BMP;
 HBITMAP hBMP = NULL;
-
-GLuint starStripTexture = 0;
 
 LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -122,7 +125,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		//{
 		//	mode = -1;
 		//}
-		else if (wParam == ' ')	// Reset (Key Space Bar)
+		else if (wParam == ' ')
 		{
 			materialType = 1;
 			r = 2.0f;
@@ -139,16 +142,21 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			upX = 0.0f;
 			upY = 1.0f;
 			upZ = 0.0f;
-			rotateFinger = 0.0f;
-			rotateTumb = 0.0f;
+			rotateFinger = 90.0f;
+			rotateTumb = -45.0f;
 			rotateWheel = 0.0f;
 			rotateShoulderJointX = 0.0f;
 			rotateShoulderJointY = 0.0f;
 			rotateShoulderJointZ = 0.0f;
-			rotateArmJointX = 0.0f;
-			rotateArmJointY = 0.0f;
-			rotateArmJointZ = 0.0f;
-			rotateWrist = 0.0f;
+			rotateUpperArmJointX = 0.0f;
+			rotateUpperArmJointY = 0.0f;
+			rotateUpperArmJointZ = 0.0f;
+			rotateElbowJointX = 30.0f;
+			rotateElbowJointY = 0.0f;
+			rotateElbowJointZ = -90.0f;
+			rotateWristJointX = 0.0f;
+			rotateWristJointY = 5.0f;
+			rotateWristJointZ = 0.0f;
 			// lightX
 			positionLight0[0] = 0.0f;
 			// lightY
@@ -168,7 +176,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 				if (isOrtho)
 				{
-					glOrtho(-10, 10, -10, 10, 1, 10);
+					glOrtho(-3, 3, -3, 3, -3, 3);
 				}
 				else
 				{
@@ -212,7 +220,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				//eyeY -= cameraSpeed * elapsedSeconds;
 				//rotatey -= 0.5f * elapsedSeconds;
 			}
-			else if (wParam == 'E')	// Near
+			else if (wParam == 'Q')	// Near
 			{
 				r += 0.1f;
 				eyeX = r * sin(angle * 3.142 / 180.0);
@@ -221,7 +229,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				//eyeZ -= cameraSpeed * elapsedSeconds;
 				//rotatez -= 0.5f * elapsedSeconds;
 			}
-			else if (wParam == 'Q')	// Far
+			else if (wParam == 'E')	// Far
 			{
 				r -= 0.1f;
 				eyeX = r * sin(angle * 3.142 / 180.0);
@@ -253,12 +261,12 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				// lightY
 				positionLight0[1] -= cameraSpeed * elapsedSeconds;
 			}
-			else if (wParam == 'E')	// Near
+			else if (wParam == 'Q')	// Near
 			{
 				// lightZ
 				positionLight0[2] += cameraSpeed * elapsedSeconds;
 			}
-			else if (wParam == 'Q')	// Far
+			else if (wParam == 'E')	// Far
 			{
 				// lightZ
 				positionLight0[2] -= cameraSpeed * elapsedSeconds;
@@ -286,11 +294,11 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			{
 				lookAtY -= cameraSpeed * elapsedSeconds;
 			}
-			else if (wParam == 'E')
+			else if (wParam == 'Q')
 			{
 				lookAtZ += cameraSpeed * elapsedSeconds;
 			}
-			else if (wParam == 'Q')
+			else if (wParam == 'E')
 			{
 				lookAtZ -= cameraSpeed * elapsedSeconds;
 			}
@@ -313,11 +321,11 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			{
 				upY -= cameraSpeed * elapsedSeconds;
 			}
-			else if (wParam == 'E')
+			else if (wParam == 'Q')
 			{
 				upZ += cameraSpeed * elapsedSeconds;
 			}
-			else if (wParam == 'Q')
+			else if (wParam == 'E')
 			{
 				upZ -= cameraSpeed * elapsedSeconds;
 			}
@@ -330,9 +338,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				{
 					rotateFinger += speed * elapsedSeconds;
 				}
-				if (rotateFinger < 45.0f)
+				if (rotateTumb > -45.0f)
 				{
-					rotateTumb += speed / 2 * elapsedSeconds;
+					rotateTumb -= speed / 2 * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'S')
@@ -341,9 +349,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				{
 					rotateFinger -= speed * elapsedSeconds;
 				}
-				if (rotateTumb > 0.0f)
+				if (rotateTumb < 0.0f)
 				{
-					rotateTumb -= speed / 2 * elapsedSeconds;
+					rotateTumb += speed / 2 * elapsedSeconds;
 				}
 			}
 		}
@@ -351,9 +359,13 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 			if (wParam == 'W')
 			{
-				if (rotateShoulderJointX < 180.0f)
+				if (rotateShoulderJointX < 5.0f)
 				{
 					rotateShoulderJointX += speed * elapsedSeconds;
+				}
+				if (rotateUpperArmJointX < 5.0f)
+				{
+					rotateUpperArmJointX += speed * elapsedSeconds;
 				}
 				//if (rotateArmJoint < 45.0f)
 				//{
@@ -362,79 +374,141 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			else if (wParam == 'S')
 			{
-				if (rotateShoulderJointX > 0.0f)
+				if (rotateShoulderJointX > -5.0f)
 				{
 					rotateShoulderJointX -= speed * elapsedSeconds;
 				}
-			}
-			else if (wParam == 'D')
-			{
-				if (rotateShoulderJointY < 90.0f)
+				if (rotateUpperArmJointX > -5.0f)
 				{
-					rotateShoulderJointY += speed * elapsedSeconds;
+					rotateUpperArmJointX -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'A')
 			{
-				if (rotateShoulderJointY > -30.0f)
-				{
-					rotateShoulderJointY -= speed * elapsedSeconds;
-				}
-			}
-			else if (wParam == 'Q')
-			{
-				if (rotateShoulderJointZ < 15.0f)
+				if (rotateShoulderJointZ < 5.0f)
 				{
 					rotateShoulderJointZ += speed * elapsedSeconds;
+				}
+				if (rotateUpperArmJointY < 5.0f)
+				{
+					rotateUpperArmJointY += speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'D')
+			{
+				if (rotateShoulderJointZ > -5.0f)
+				{
+					rotateShoulderJointZ -= speed * elapsedSeconds;
+				}
+				if (rotateUpperArmJointY > -5.0f)
+				{
+					rotateUpperArmJointY -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'E')
 			{
-				if (rotateShoulderJointZ > -100.0f)
+				if (rotateShoulderJointY < 5.0f)
 				{
-					rotateShoulderJointZ -= speed * elapsedSeconds;
+					rotateShoulderJointY += speed * elapsedSeconds;
+				}
+				if (rotateUpperArmJointZ > 5.0f)
+				{
+					rotateUpperArmJointZ -= speed * elapsedSeconds;
 				}
 			}
-			else if (wParam == 'T')
+			else if (wParam == 'Q')
 			{
-				if (rotateArmJointX < 130.0f)
+				if (rotateShoulderJointY > -5.0f)
 				{
-					rotateArmJointX += speed * elapsedSeconds;
+					rotateShoulderJointY -= speed * elapsedSeconds;
 				}
-			}
-			else if (wParam == 'G')
-			{
-				if (rotateArmJointX > 0.0f)
+				if (rotateUpperArmJointZ < -5.0f)
 				{
-					rotateArmJointX -= speed * elapsedSeconds;
+					rotateUpperArmJointZ += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'H')
 			{
-				if (rotateArmJointY < 30.0f)
+				if (rotateElbowJointX < 45.0f)
 				{
-					rotateArmJointY += speed * elapsedSeconds;
+					rotateElbowJointX += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'F')
 			{
-				if (rotateArmJointY > -100.0f)
+				if (rotateElbowJointX > -0.0f)
 				{
-					rotateArmJointY -= speed * elapsedSeconds;
+					rotateElbowJointX -= speed * elapsedSeconds;
 				}
 			}
-			else if (wParam == 'R')
+			else if (wParam == 'T')
 			{
-				if (rotateArmJointZ < 90.0f)
+				if (rotateElbowJointY < 45.0f)
 				{
-					rotateArmJointZ += speed * elapsedSeconds;
+					rotateElbowJointY += speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'G')
+			{
+				if (rotateElbowJointY > -45.0f)
+				{
+					rotateElbowJointY -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'Y')
 			{
-				if (rotateArmJointZ > -15.0f)
+				if (rotateElbowJointZ < 5.0f)
 				{
-					rotateArmJointZ -= speed * elapsedSeconds;
+					rotateElbowJointZ += speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'R')
+			{
+				if (rotateElbowJointZ > -5.0f)
+				{
+					rotateElbowJointZ -= speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'I')
+			{
+				if (rotateWristJointX < 5.0f)
+				{
+					rotateWristJointX += speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'K')
+			{
+				if (rotateWristJointX > -5.0f)
+				{
+					rotateWristJointX -= speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'J')
+			{
+				if (rotateWristJointY < 5.0f)
+				{
+					rotateWristJointY += speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'L')
+			{
+				if (rotateWristJointY > -5.0f)
+				{
+					rotateWristJointY -= speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'O')
+			{
+				if (rotateWristJointZ < 5.0f)
+				{
+					rotateWristJointZ += speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'U')
+			{
+				if (rotateWristJointZ > -5.0f)
+				{
+					rotateWristJointZ -= speed * elapsedSeconds;
 				}
 			}
 		}
@@ -583,35 +657,32 @@ void draw4PointedStarStrip(GLfloat radius, GLfloat depth)
 {
 	glBegin(GL_QUAD_STRIP);
 	{
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, starStripTexture);
-
-		//glColor3f(0, 0, 1);
+		glColor3f(0, 0, 1);
 		glVertex3f(0.0f, radius, -depth / 2);
 		glVertex3f(0.0f, radius, depth / 2);
 
-		//glColor3f(0, 0, 0);
+		glColor3f(0, 0, 0);
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
 		glVertex3f(-radius, 0.0f, -depth / 2);
 		glVertex3f(-radius, 0.0f, depth / 2);
 
-		//glColor3f(1, 0, 0);
+		glColor3f(1, 0, 0);
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
 		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
 		glVertex3f(0.0f, -radius, -depth / 2);
 		glVertex3f(0.0f, -radius, depth / 2);
 
-		//glColor3f(0, 1, 0);
+		glColor3f(0, 1, 0);
 		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
 		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
 		glVertex3f(radius, 0.0f, -depth / 2);
 		glVertex3f(radius, 0.0f, depth / 2);
 
-		//glColor3f(0, 0, 1);
+		glColor3f(0, 0, 1);
 		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
 		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
@@ -697,6 +768,7 @@ void drawKunaiStrip(GLfloat radius, GLfloat depth)
 void drawKunai(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GLfloat innerRadius, GLfloat outerDepth, GLfloat innerDepth)
 {
 	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
 	GLfloat interval = innerDepth - outerDepth;
 
 	glPushMatrix();
@@ -704,7 +776,6 @@ void drawKunai(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GLfl
 		glTranslatef(0.0f, innerRadius + gripLength, 0.0f);
 		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 		glColor3f(0, 0, 0);
-		gluQuadricDrawStyle(quad, GLU_FILL);
 		gluCylinder(quad, gripRadius, gripRadius, gripLength, kunaiSlices, kunaiStacks);
 	}
 	glPopMatrix();
@@ -773,6 +844,7 @@ void draw4Kunais(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GL
 void drawEyeFrame(GLfloat eyeRadius, GLfloat starOuterRadius, GLfloat starInnerRadius, GLfloat starOuterDepth, GLfloat starInnerDepth, GLfloat gripRadius, GLfloat gripLength, GLfloat kunaiOuterRadius, GLfloat kunaiInnerRadius, GLfloat kunaiOuterDepth, GLfloat kunaiInnerDepth, GLfloat intervalx, GLfloat intervaly)
 {
 	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
 
 	glPushMatrix();
 	{
@@ -808,6 +880,13 @@ void drawEyeTube(GLfloat radius, GLfloat height)
 		gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
 	}
 	glPopMatrix();
+	glColor3f(0, 0, 0);
+	glPushMatrix();
+	{
+		glTranslatef(0.0f, 0.0f, height);	// height / 10.25
+		gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+	}
+	glPopMatrix();
 	glColor3f(0, 0, 1);
 	gluDisk(quad, radius * 3 / 4, radius, tubeSlices, tubeStacks);
 	drawEyeFrame(0.05f, 0.2f, 0.15f, 0.01f, 0.015f, 0.01f, 0.05f, 0.065f, 0.045f, 0.01f, 0.015f, 0.125f, 0.125f);
@@ -825,6 +904,7 @@ void drawEyeTube(GLfloat radius, GLfloat height)
 void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat translatey, GLfloat translatez, GLfloat degree, GLfloat rotatex, GLfloat rotatey, GLfloat rotatez, GLdouble headTrim[4])
 {
 	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
 
 	// Trimmed Head
 	glPushMatrix();
@@ -842,17 +922,19 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 			glPushMatrix();
 			{
 				glEnable(GL_CLIP_PLANE0);
-				glClipPlane(GL_CLIP_PLANE0, headTrim);
-				// 2. Translate the head up 'radius - trimRadius', trim 'trimRadius' of the front face
-				glTranslatef(0.0f, radius - trimRadius, 0.0f);
-				// 1. Turn the front face of the head to bottom before trim
-				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-				gluQuadricDrawStyle(quad, GLU_LINE);
-				glColor3f(1.0f, 0.0f, 0.0f);
-				gluSphere(quad, radius + 0.005, headSlices, headStacks);
-				gluQuadricDrawStyle(quad, GLU_FILL);
-				glColor3f(1.0f, 1.0f, 1.0f);
-				gluSphere(quad, radius, headSlices, headStacks);
+				{
+					glClipPlane(GL_CLIP_PLANE0, headTrim);
+					// 2. Translate the head up 'radius - trimRadius', trim 'trimRadius' of the front face
+					glTranslatef(0.0f, radius - trimRadius, 0.0f);
+					// 1. Turn the front face of the head to bottom before trim
+					glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+					//gluQuadricDrawStyle(quad, GLU_LINE);
+					//glColor3f(1.0f, 0.0f, 0.0f);
+					//gluSphere(quad, radius + 0.005, headSlices, headStacks);
+					//gluQuadricDrawStyle(quad, GLU_FILL);
+					glColor3f(1.0f, 1.0f, 1.0f);
+					gluSphere(quad, radius, headSlices, headStacks);
+				}
 				glDisable(GL_CLIP_PLANE0);
 			}
 			glPopMatrix();
@@ -895,7 +977,7 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 		}
 		glPushMatrix();
 		{
-			// mode == 1 triggered
+			// mode == 6 triggered
 			if (isTumb)
 			{
 				if (isRight)
@@ -941,7 +1023,7 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 	glPopMatrix();
 }
 
-void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boolean isRight)
+void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolean isRight)
 {
 	GLfloat leftBasedRadius;
 	GLfloat rightBasedRadius;
@@ -951,41 +1033,113 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 		//glScalef(5, 5, 5);
 		if (isRight)
 		{
-			leftBasedRadius = -basedRadius * 2;
-			rightBasedRadius = basedRadius * 3;
-		}
-		else
-		{
 			leftBasedRadius = -basedRadius * 3;
 			rightBasedRadius = basedRadius * 2;
 		}
+		else
+		{
+			leftBasedRadius = -basedRadius * 2;
+			rightBasedRadius = basedRadius * 3;
+		}
+
+		// Wrist
+		glColor3f(0, 1, 0);
+		glBegin(GL_QUADS);
+		{
+			if (isRight)
+			{
+				// Front Face
+				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+
+				// Back Face
+				glVertex3f(leftBasedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
+
+				// Left Face
+				glVertex3f(leftBasedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
+
+				// Right Face
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+
+				// Top Face
+				glVertex3f(leftBasedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
+			}
+			else
+			{
+				// Front Face
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
+
+				// Back Face
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, basedRadius);
+
+				// Left Face
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+
+				// Right Face
+				glVertex3f(rightBasedRadius, halfLength, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
+
+				// Top Face
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
+				glVertex3f(rightBasedRadius, halfLength, basedRadius);
+			}
+		}
+		glEnd();
+
 		// Palm
 		glColor3f(1, 0, 0);
 		glBegin(GL_QUADS);
 		{
 			// Front Face
-			glVertex3f(leftBasedRadius, totalLength, -basedRadius);
+			glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
 			glVertex3f(leftBasedRadius, 0.0f, -basedRadius);
 			glVertex3f(rightBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, totalLength, -basedRadius);
+			glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Back Face
-			glVertex3f(leftBasedRadius, totalLength, basedRadius);
+			glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
 			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
 			glVertex3f(rightBasedRadius, 0.0f, basedRadius);
-			glVertex3f(rightBasedRadius, totalLength, basedRadius);
+			glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
 
 			// Left Face
-			glVertex3f(leftBasedRadius, totalLength, basedRadius);
+			glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
 			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
 			glVertex3f(leftBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(leftBasedRadius, totalLength, -basedRadius);
+			glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Right Face
-			glVertex3f(rightBasedRadius, totalLength, basedRadius);
+			glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
 			glVertex3f(rightBasedRadius, 0.0f, basedRadius);
 			glVertex3f(rightBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, totalLength, -basedRadius);
+			glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Bottom Face
 			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
@@ -996,31 +1150,31 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 		glEnd();
 
 		// Middle Finger
-		drawFinger(basedRadius, topRadius, totalLength, false, isRight);
+		drawFinger(basedRadius, topRadius, halfLength, false, isRight);
 		glPushMatrix();
 		{
 			// Fore Finger
 			if (isRight)
 			{
-				glTranslatef(-basedRadius, 0.0f, 0.0f);
+				glTranslatef(basedRadius, 0.0f, 0.0f);
 			}
 			else
 			{
-				glTranslatef(basedRadius, 0.0f, 0.0f);
+				glTranslatef(-basedRadius, 0.0f, 0.0f);
 			}
-			drawFinger(basedRadius, topRadius, totalLength * 0.85, false, isRight);
+			drawFinger(basedRadius, topRadius, halfLength * 0.85, false, isRight);
 			// Tumb
 			if (isRight)
 			{
-				glTranslatef(-basedRadius, totalLength * 0.5, 0.0f);
-			}
-			else
-			{
-				glTranslatef(basedRadius, totalLength * 0.5, 0.0f);
+				glTranslatef(basedRadius, halfLength * 0.5, 0.0f);
 				glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
 				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 			}
-			drawFinger(basedRadius, topRadius, totalLength * 0.7, true, isRight);
+			else
+			{
+				glTranslatef(-basedRadius, halfLength * 0.5, 0.0f);
+			}
+			drawFinger(basedRadius, topRadius, halfLength * 0.7, true, isRight);
 		}
 		glPopMatrix();
 		glPushMatrix();
@@ -1028,23 +1182,23 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 			// Ring Finger
 			if (isRight)
 			{
-				glTranslatef(basedRadius, 0.0f, 0.0f);
+				glTranslatef(-basedRadius, 0.0f, 0.0f);
 			}
 			else
 			{
-				glTranslatef(-basedRadius, 0.0f, 0.0f);
+				glTranslatef(basedRadius, 0.0f, 0.0f);
 			}
-			drawFinger(basedRadius, topRadius, totalLength * 0.85, false, isRight);
+			drawFinger(basedRadius, topRadius, halfLength * 0.85, false, isRight);
 			// Little Finger
 			if (isRight)
 			{
-				glTranslatef(basedRadius, 0.0f, 0.0f);
+				glTranslatef(-basedRadius, 0.0f, 0.0f);
 			}
 			else
 			{
-				glTranslatef(-basedRadius, 0.0f, 0.0f);
+				glTranslatef(basedRadius, 0.0f, 0.0f);
 			}
-			drawFinger(basedRadius, topRadius, totalLength * 0.7, false, isRight);
+			drawFinger(basedRadius, topRadius, halfLength * 0.7, false, isRight);
 		}
 		glPopMatrix();
 	}
@@ -1053,24 +1207,6 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 
 void drawShieldPlane(GLfloat radius, GLfloat bulge)
 {
-	//glBegin(GL_TRIANGLES);
-	//{
-	//	glColor3f(1, 0, 0);
-	//	glVertex3f(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, bulge / 2);
-	//	glColor3f(0, 1, 0);
-	//	glVertex3f(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
-	//	glColor3f(0, 0, 1);
-	//	glVertex3f(radius * cos(120 * PI / 180) * 3 / 4, radius * sin(120 * PI / 180) * 3 / 4, bulge / 2);
-
-	//	glColor3f(1, 0, 0);
-	//	glVertex3f(radius * cos(225 * PI / 180) * 3 / 4, radius * sin(225 * PI / 180) * 3 / 4, bulge / 2);
-	//	glColor3f(0, 1, 0);
-	//	glVertex3f(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
-	//	glColor3f(0, 0, 1);
-	//	glVertex3f(radius * cos(315 * PI / 180) * 3 / 4, radius * sin(315 * PI / 180) * 3 / 4, bulge / 2);
-	//}
-	//glEnd();
-
 	glBegin(GL_QUADS);
 	{
 		glColor3f(1, 1, 1);
@@ -1091,6 +1227,7 @@ void drawShieldPlane(GLfloat radius, GLfloat bulge)
 void drawShield(GLfloat radius, GLfloat totalDepth)
 {
 	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
 
 	glPushMatrix();
 	{
@@ -1147,11 +1284,9 @@ void drawShield(GLfloat radius, GLfloat totalDepth)
 	glPopMatrix();
 }
 
-void drawHand(boolean isRight)
+// No use
+void drawHand(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boolean isRight)
 {
-	GLfloat basedRadius = 0.0175f;
-	GLfloat topRadius = 0.0125f;
-	GLfloat totalLength = 0.085f;
 	GLfloat totalDepth = 0.05f;
 
 	drawPalm(basedRadius, topRadius, totalLength, isRight);
@@ -1159,12 +1294,14 @@ void drawHand(boolean isRight)
 	{
 		if (isRight)
 		{
-			glTranslatef(basedRadius / 2, totalLength * sin(45 * PI / 180) * 3 / 4, totalDepth);
+			glTranslatef(-basedRadius / 2, totalLength * sin(45 * PI / 180) * 3 / 4, -totalDepth);
 		}
 		else
 		{
-			glTranslatef(-basedRadius / 2, totalLength * sin(45 * PI / 180) * 3 / 4, totalDepth);
+			glTranslatef(basedRadius / 2, totalLength * sin(45 * PI / 180) * 3 / 4, -totalDepth);
 		}
+		glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 		glRotatef(180.0f, 0.0f, 1.0f, 0.05f);
 		drawShield(totalLength * 1.25, totalDepth);
 	}
@@ -1269,18 +1406,18 @@ void drawNail(GLfloat radius, GLfloat height)
 	glPopMatrix();
 }
 
-void drawShoulder(GLfloat height, boolean isRight) {
+void drawShoulder(GLfloat height, GLfloat shieldDepth, boolean isRight) {
 
 	glPushMatrix();
 	{
 		if (!isRight)
 		{
-			glTranslatef(height * 7 / 4, 0.0f, 0.0f);
+			//glTranslatef(-height * 7 / 4, 0.0f, 0.0f);
+			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 		}
 		else
 		{
-			glTranslatef(-height * 7 / 4, 0.0f, 0.0f);
-			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+			//glTranslatef(height * 7 / 4, 0.0f, 0.0f);
 		}
 		glBegin(GL_QUADS);
 		{
@@ -1374,13 +1511,14 @@ void drawShoulder(GLfloat height, boolean isRight) {
 
 		glPushMatrix();
 		{
+			//glTranslatef(-height / 3, -height / 7, -height / 2);
 			if (isRight)
 			{
-				glTranslatef(-height / 3, -height / 7, height / 2);
+				glTranslatef(-height / 3, -height / 7, -height / 2);
 			}
 			else
 			{
-				glTranslatef(-height / 3, -height / 7, -height / 2);
+				glTranslatef(-height / 3, -height / 7, height / 2);
 			}
 			drawWheel(height / 4, height / 6);
 		}
@@ -1394,11 +1532,29 @@ void drawShoulder(GLfloat height, boolean isRight) {
 		glPopMatrix();
 	}
 	glPopMatrix();
+
+	glPushMatrix();
+	{
+		if (isRight)
+		{
+			glTranslatef(height * 3 / 4 + shieldDepth / 3, shieldDepth / 2, 0.0f);
+			glRotatef(-135.0, 0.0f, 0.0f, 1.0f);
+			glRotatef(90.0, 0.0f, 1.0f, 0.0f);
+		}
+		else
+		{
+			glTranslatef(-height * 3 / 4 - shieldDepth / 3, shieldDepth / 2, 0.0f);
+			glRotatef(135.0, 0.0f, 0.0f, 1.0f);
+			glRotatef(-90.0, 0.0f, 1.0f, 0.0f);
+		}
+		drawShield(height, shieldDepth);
+	}
+	glPopMatrix();
 }
 
-void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength)
+void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean isRight)
 {
-	// Arm: S1=C1=S2=C2=S3
+	// Arm: S1=C1=S2=C2=S3=C3
 	// S1, S2, S3 = shepere joints
 	// C1 + C2 = cylinder arms
 	GLfloat partLength = totalLength / 2;
@@ -1406,30 +1562,55 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength)
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
 
+	if (isRight)
+	{
+		//glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+	}
+	else
+	{
+		glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+	}
+
 	glPushMatrix();
 	{
 		// S1
 		glTranslatef(0.0f, 0.0f, -partLength);
+		glRotatef(35.0f, 0.0f, 1.0f, 0.0f);
 		glColor3f(1, 1, 1);
 		gluSphere(quad, baseRadius, tubeSlices, tubeStacks);
 		//C1
 		// mode == 7 triggered
-		glRotatef(rotateShoulderJointX, 1.0f, 0.0f, 0.0f);
-		glRotatef(rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
-		glRotatef(rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
+		glRotatef(rotateUpperArmJointX, 1.0f, 0.0f, 0.0f);
+		glRotatef(rotateUpperArmJointY, 0.0f, 1.0f, 0.0f);
+		glRotatef(rotateUpperArmJointZ, 0.0f, 0.0f, 1.0f);
+		if (!isRight)
+		{
+			glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+		}
 		glColor3f(0, 0, 0);
-		gluCylinder(quad, baseRadius, centerRadius, partLength, tubeSlices, tubeStacks);
+		gluCylinder(quad, baseRadius, centerRadius, partLength * 3 / 4, tubeSlices, tubeStacks);
 		glPushMatrix();
 		{
-			glTranslatef(0.0f, 0.0f, partLength);
+			glTranslatef(0.0f, 0.0f, partLength * 3 / 4);
+			glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
 			// S2
 			glColor3f(1, 1, 1);
 			gluSphere(quad, centerRadius, tubeSlices, tubeStacks);
 			// C2
 			// mode == 7 triggered
-			glRotatef(rotateArmJointX, 1.0f, 0.0f, 0.0f);
-			glRotatef(rotateArmJointY, 0.0f, 1.0f, 0.0f);
-			glRotatef(rotateArmJointZ, 0.0f, 0.0f, 1.0f);
+			if (isRight)
+			{
+				glRotatef(rotateElbowJointX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotateElbowJointY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotateElbowJointZ, 0.0f, 0.0f, 1.0f);
+			}
+			else
+			{
+				glRotatef(-rotateElbowJointX, 1.0f, 0.0f, 0.0f);
+				glRotatef(-rotateElbowJointY, 0.0f, 1.0f, 0.0f);
+				glRotatef(-rotateElbowJointZ, 0.0f, 0.0f, 1.0f);
+				//glRotatef(-55.0f, 0.0f, 1.0f, 0.0f);
+			}
 			glColor3f(0, 0, 0);
 			gluCylinder(quad, centerRadius, topRadius, partLength, tubeSlices, tubeStacks);
 			glPushMatrix();
@@ -1438,8 +1619,59 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength)
 				// S3
 				glColor3f(1, 1, 1);
 				gluSphere(quad, topRadius, tubeSlices, tubeStacks);
+				// C3
+				// mode == 7 triggered
+				glRotatef(rotateWristJointX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotateWristJointY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotateWristJointZ, 0.0f, 0.0f, 1.0f);
+				glColor3f(0, 0, 0);
+				gluCylinder(quad, topRadius, 0.0f, partLength / 4, tubeSlices, tubeStacks);
 			}
 			glPopMatrix();
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
+}
+
+void drawCompleteArms(GLfloat shoulderHeight, GLfloat shieldDepth, GLfloat armLength, GLfloat wristJointRadius, boolean isRight)
+{
+	// Shoulders
+	glPushMatrix();
+	{
+		// mode == 7 triggered
+		//glRotatef(rotateShoulderJointX, 1.0f, 0.0f, 0.0f);
+		//glRotatef(rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
+		//glRotatef(rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
+		if (isRight)
+		{
+			glRotatef(rotateShoulderJointX, 1.0f, 0.0f, 0.0f);
+			glRotatef(rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
+			glRotatef(rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
+		}
+		else
+		{
+			glRotatef(-rotateShoulderJointX, 1.0f, 0.0f, 0.0f);
+			glRotatef(-rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
+			glRotatef(-rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
+		}
+		drawShoulder(shoulderHeight, shieldDepth, isRight);
+
+		// Arm
+		GLfloat shouderJointRadius = shoulderHeight / 4; //0.65 / 8
+		glPushMatrix();
+		{
+			if (isRight)
+			{
+				glTranslatef(-shoulderHeight * 1 / 4, 0.0f, 0.0f);
+			}
+			else
+			{
+				glTranslatef(shoulderHeight * 1 / 4, 0.0f, 0.0f);
+			}
+			glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+			glTranslatef(0.0, 0.0, armLength / 2);
+			drawArm(shouderJointRadius, wristJointRadius, armLength, isRight);
 		}
 		glPopMatrix();
 	}
@@ -1481,8 +1713,8 @@ void drawRobot()
 	//drawBody(GL_LINE_STRIP, 0.1f, 50, 50);
 }
 
-	//glBindTexture(GL_TEXTURE_2D, texTexture);
-	//gluQuadricTexture(obj, GL_TRUE);
+//glBindTexture(GL_TEXTURE_2D, texTexture);
+//gluQuadricTexture(obj, GL_TRUE);
 void display()
 {
 	//--------------------------------
@@ -1490,6 +1722,7 @@ void display()
 	//--------------------------------
 	glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
 
 	glPushMatrix();
 	{
@@ -1591,8 +1824,8 @@ void display()
 		glPopMatrix();
 
 		// Head
-		//GLdouble headTrim[4] = { 0.0, 1.0, 0.0, 0.0 };
-		//drawHead(0.325f, 0.025f, 0.0f, 0.3f, 0.0f, 20.0f, 1.0f, 0.0f, 0.0f, headTrim);
+		GLdouble headTrim[4] = { 0.0, 1.0, 0.0, 0.0 };
+		drawHead(0.325f, 0.025f, 0.0f, 0.0f, 0.0f, 20.0f, 1.0f, 0.0f, 0.0f, headTrim);
 
 		// Eye
 		//drawEyeTube(sqrt(pow(0.325f, 2) - pow(0.325f - 0.025f, 2)), 0.35f);
@@ -1618,6 +1851,36 @@ void display()
 		//glPopMatrix();
 		//glPopMatrix();
 
+		// Hands
+		//GLfloat partLength = 0.325;
+		//GLfloat wristJointRadius = 0.0175f;
+		//GLfloat fingerTipRadius = 0.0125f;
+		//GLfloat plamLength = 0.085f;
+		//boolean isRight = false;
+		//glPushMatrix();
+		//{
+		//	//glTranslatef(-0.3f, 0.0f, 0.0f);
+		//	// mode == 7 triggered
+		//	glRotatef(rotateUpperArmJointX, 1.0f, 0.0f, 0.0f);
+		//	glRotatef(rotateUpperArmJointY, 0.0f, 1.0f, 0.0f);
+		//	glRotatef(rotateUpperArmJointZ, 0.0f, 0.0f, 1.0f);
+		//	glRotatef(rotateElbowJointX, 1.0f, 0.0f, 0.0f);
+		//	glRotatef(rotateElbowJointY, 0.0f, 1.0f, 0.0f);
+		//	glRotatef(rotateElbowJointZ, 0.0f, 0.0f, 1.0f);
+		//	if (isRight)
+		//	{
+		//		glTranslatef(wristJointRadius, 0.0f, partLength + plamLength);
+		//	}
+		//	else
+		//	{
+		//		glTranslatef(-wristJointRadius, 0.0f, partLength + plamLength);
+		//	}
+		//	glRotatef(90.0, -1.0, 0.0, 0.0);
+		//	drawPalm(wristJointRadius, fingerTipRadius, plamLength, isRight);
+		//	//drawHand(wristJointRadius, fingerTipRadius, handLength, isRight);
+		//}
+		//glPopMatrix();
+
 		// Wheel
 		//drawWheel(0.325 / 2, 0.1f);
 
@@ -1629,8 +1892,52 @@ void display()
 		//drawShoulder(0.325, false);
 
 		// Arm
-		drawArm(0.65f / 8, 0.65f / 8, 0.65f);
+		//glPushMatrix();
+		//glTranslatef(0.0, 0.0, 0.65 / 2);
+		//drawArm(0.65f / 8, 0.65f / 8, 0.65f);
 		//glPopMatrix();
+		//glPopMatrix();
+
+		// 4 Arms
+		GLfloat shoulderHeight = 0.325f / 2; // 0.325f
+		GLfloat shieldDepth = 0.25f;
+		GLfloat armLength = 0.65f;
+		GLfloat wristJointRadius = 0.0175f;
+		//	Right Front
+		glPushMatrix();
+		{
+			glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
+			glTranslatef(0.325f + 0.325 / 4, 0.0f, -0.325f / 4);
+			drawCompleteArms(shoulderHeight, shieldDepth, armLength, wristJointRadius, true);
+		}
+		glPopMatrix();
+
+		//	Right Back
+		glPushMatrix();
+		{
+			glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
+			glTranslatef(0.325f + 0.325 / 4, 0.0f, 0.325f / 4);
+			drawCompleteArms(shoulderHeight, shieldDepth, armLength, wristJointRadius, true);
+		}
+		glPopMatrix();
+
+		//	Left Front
+		glPushMatrix();
+		{
+			glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
+			glTranslatef(-0.325f - 0.325 / 4, 0.0f, -0.325f / 4);
+			drawCompleteArms(shoulderHeight, shieldDepth, armLength, wristJointRadius, false);
+		}
+		glPopMatrix();
+
+		//	Left Back
+		glPushMatrix();
+		{
+			glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
+			glTranslatef(-0.325f - 0.325 / 4, 0.0f, 0.325f / 4);
+			drawCompleteArms(shoulderHeight, shieldDepth, armLength, wristJointRadius, false);
+		}
+		glPopMatrix();
 
 		//glPushMatrix();
 		//glScalef(1.5, 1.5, 1.5);
@@ -1646,7 +1953,7 @@ void setupCamera()
 {
 	//#pragma region View to Project
 	glMatrixMode(GL_PROJECTION);
-	glOrtho(-10, 10, -10, 10, -1, 10);
+	glOrtho(-3, 3, -3, 3, -3, 3);
 	//eyeZ -= 5.0f;
 	//# pragma endregion
 }
@@ -1757,12 +2064,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow)
 	//	End initialization
 	//--------------------------------
 
-#pragma region TextureMapping
-	
-	setupTextures("starStrip.bmp", &starStripTexture);
-
-
-#pragma endregion
 
 	ShowWindow(hWnd, nCmdShow);
 
