@@ -76,6 +76,9 @@ GLfloat rotatePlamZ = 0.0f;
 GLfloat rotateHandX = 0.0f;
 GLfloat rotateHandY = 0.0f;
 GLfloat rotateHandZ = 0.0f;
+GLfloat punchSpeed = 0.0f;
+boolean punchReturn = false;
+boolean punchFlip = false;
 
 // Rotate Attributes
 GLfloat objectRotateX = 0.0f;
@@ -202,6 +205,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			rotateHandX = 0.0f;
 			rotateHandY = 0.0f;
 			rotateHandZ = 0.0f;
+			punchSpeed = 0.0f;
+			punchReturn = false;
+			punchFlip = false;
 			// lightX
 			positionLight0[0] = 0.0f;
 			// lightY
@@ -437,22 +443,47 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			{
 				if (rotateFinger < 90.0f)
 				{
-					rotateFinger += speed * elapsedSeconds;
+					rotateFinger += 2 * speed * elapsedSeconds;
 				}
 				if (rotateTumb > -45.0f)
 				{
-					rotateTumb -= speed / 2 * elapsedSeconds;
+					rotateTumb -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'X')
 			{
 				if (rotateFinger > 0.0f)
 				{
-					rotateFinger -= speed * elapsedSeconds;
+					rotateFinger -= 2 * speed * elapsedSeconds;
 				}
 				if (rotateTumb < 0.0f)
 				{
-					rotateTumb += speed / 2 * elapsedSeconds;
+					rotateTumb += speed * elapsedSeconds;
+				}
+			}
+			else if (wParam == 'C')
+			{
+				if (!punchReturn)
+				{
+					if (punchSpeed < 0.25f)
+					{
+						punchSpeed += 0.01 * speed * elapsedSeconds;
+					}
+					else
+					{
+						punchReturn = true;
+					}
+				}
+				else
+				{
+					if (punchSpeed > -0.25f)
+					{
+						punchSpeed -= 0.01 * speed * elapsedSeconds;
+					}
+					else
+					{
+						punchReturn = false;
+					}
 				}
 			}
 		}
@@ -752,6 +783,12 @@ void drawS(GLfloat coordX, GLfloat coordY, GLfloat coordZ, GLfloat radiusX, GLfl
 	} while (accumZ >= 0.0f);
 }
 
+void drawNormalizedVertex(GLfloat x, GLfloat y, GLfloat z)
+{
+	glNormal3f(x, y, z);
+	glVertex3f(x, y, z);
+}
+
 void draw4PointedStarLine(GLfloat radius)
 {
 	glBegin(GL_LINE_LOOP);
@@ -759,10 +796,10 @@ void draw4PointedStarLine(GLfloat radius)
 		for (int i = 0; i < 8; i++) {
 			int j = i * 360 / 8;
 			if (i % 2 == 1) {
-				glVertex3f(radius * cos(j * PI / 180) / 2, radius * sin(j * PI / 180) / 2, 0.0f);
+				drawNormalizedVertex(radius * cos(j * PI / 180) / 2, radius * sin(j * PI / 180) / 2, 0.0f);
 			}
 			else {
-				glVertex3f(radius * cos(j * PI / 180), radius * sin(j * PI / 180), 0.0f);
+				drawNormalizedVertex(radius * cos(j * PI / 180), radius * sin(j * PI / 180), 0.0f);
 			}
 		}
 	}
@@ -774,36 +811,36 @@ void draw4PointedStarStrip(GLfloat radius, GLfloat depth)
 	glBegin(GL_QUAD_STRIP);
 	{
 		glColor3f(0, 0, 1);
-		glVertex3f(0.0f, radius, -depth / 2);
-		glVertex3f(0.0f, radius, depth / 2);
+		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		drawNormalizedVertex(0.0f, radius, depth / 2);
 
 		glColor3f(0, 0, 0);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
+		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
-		glVertex3f(-radius, 0.0f, -depth / 2);
-		glVertex3f(-radius, 0.0f, depth / 2);
+		drawNormalizedVertex(-radius, 0.0f, -depth / 2);
+		drawNormalizedVertex(-radius, 0.0f, depth / 2);
 
 		glColor3f(1, 0, 0);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
+		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
+		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
-		glVertex3f(0.0f, -radius, -depth / 2);
-		glVertex3f(0.0f, -radius, depth / 2);
+		drawNormalizedVertex(0.0f, -radius, -depth / 2);
+		drawNormalizedVertex(0.0f, -radius, depth / 2);
 
 		glColor3f(0, 1, 0);
-		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
-		glVertex3f(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
+		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
+		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
-		glVertex3f(radius, 0.0f, -depth / 2);
-		glVertex3f(radius, 0.0f, depth / 2);
+		drawNormalizedVertex(radius, 0.0f, -depth / 2);
+		drawNormalizedVertex(radius, 0.0f, depth / 2);
 
 		glColor3f(0, 0, 1);
-		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
-		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
+		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
-		glVertex3f(0.0f, radius, -depth / 2);
-		glVertex3f(0.0f, radius, depth / 2);
+		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		drawNormalizedVertex(0.0f, radius, depth / 2);
 	}
 	glEnd();
 }
@@ -822,36 +859,36 @@ void draw4PointedStar(GLfloat outerRadius, GLfloat innerRadius, GLfloat outerDep
 	glBegin(GL_QUAD_STRIP);
 	{
 		glColor3f(0, 0, 1);
-		glVertex3f(0.0f, outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, innerRadius, -innerDepth / 2);
+		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
 
 		glColor3f(0, 0, 0);
-		glVertex3f(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+		drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+		drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
 
-		glVertex3f(-outerRadius, 0.0f, -outerDepth / 2 + interval);
-		glVertex3f(-innerRadius, 0.0f, -innerDepth / 2);
+		drawNormalizedVertex(-outerRadius, 0.0f, -outerDepth / 2 + interval);
+		drawNormalizedVertex(-innerRadius, 0.0f, -innerDepth / 2);
 
 		glColor3f(1, 0, 0);
-		glVertex3f(-outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(-innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+		drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+		drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
 
-		glVertex3f(0.0f, -outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, -innerRadius, -innerDepth / 2);
+		drawNormalizedVertex(0.0f, -outerRadius, -outerDepth / 2 + interval);
+		drawNormalizedVertex(0.0f, -innerRadius, -innerDepth / 2);
 
 		glColor3f(0, 1, 0);
-		glVertex3f(outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+		drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+		drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
 
-		glVertex3f(outerRadius, 0.0f, -outerDepth / 2 + interval);
-		glVertex3f(innerRadius, 0.0f, -innerDepth / 2);
+		drawNormalizedVertex(outerRadius, 0.0f, -outerDepth / 2 + interval);
+		drawNormalizedVertex(innerRadius, 0.0f, -innerDepth / 2);
 
 		glColor3f(0, 0, 1);
-		glVertex3f(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+		drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+		drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
 
-		glVertex3f(0.0f, outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, innerRadius, -innerDepth / 2);
+		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
 	}
 	glEnd();
 }
@@ -861,22 +898,22 @@ void drawKunaiStrip(GLfloat radius, GLfloat depth)
 	glBegin(GL_QUAD_STRIP);
 	{
 		glColor3f(1, 1, 1);
-		glVertex3f(0.0f, radius, -depth / 2);
-		glVertex3f(0.0f, radius, depth / 2);
+		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		drawNormalizedVertex(0.0f, radius, depth / 2);
 
 		glColor3f(0, 0, 0);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
-		glVertex3f(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
+		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
-		glVertex3f(0.0f, -radius, -depth / 2);
-		glVertex3f(0.0f, -radius, depth / 2);
+		drawNormalizedVertex(0.0f, -radius, -depth / 2);
+		drawNormalizedVertex(0.0f, -radius, depth / 2);
 
 		glColor3f(1, 1, 1);
-		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
-		glVertex3f(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
+		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
-		glVertex3f(0.0f, radius, -depth / 2);
-		glVertex3f(0.0f, radius, depth / 2);
+		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		drawNormalizedVertex(0.0f, radius, depth / 2);
 	}
 	glEnd();
 }
@@ -905,22 +942,22 @@ void drawKunai(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GLfl
 	glBegin(GL_QUAD_STRIP);
 	{
 		glColor3f(1, 1, 1);
-		glVertex3f(0.0f, outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, innerRadius, -innerDepth / 2);
+		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
 
 		glColor3f(0, 0, 0);
-		glVertex3f(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+		drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+		drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
 
-		glVertex3f(0.0f, -outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, -innerRadius, -innerDepth / 2);
+		drawNormalizedVertex(0.0f, -outerRadius, -outerDepth / 2 + interval);
+		drawNormalizedVertex(0.0f, -innerRadius, -innerDepth / 2);
 
 		glColor3f(1, 1, 1);
-		glVertex3f(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		glVertex3f(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+		drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+		drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
 
-		glVertex3f(0.0f, outerRadius, -outerDepth / 2 + interval);
-		glVertex3f(0.0f, innerRadius, -innerDepth / 2);
+		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
 	}
 	glEnd();
 }
@@ -1165,66 +1202,66 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 			if (isRight)
 			{
 				// Front Face
-				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
-				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
 
 				// Back Face
-				glVertex3f(leftBasedRadius, halfLength, basedRadius);
-				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
 
 				// Left Face
-				glVertex3f(leftBasedRadius, halfLength, basedRadius);
-				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
 
 				// Right Face
-				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
-				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
 
 				// Top Face
-				glVertex3f(leftBasedRadius, halfLength, basedRadius);
-				glVertex3f(leftBasedRadius, halfLength, -basedRadius);
-				glVertex3f(rightBasedRadius - basedRadius, halfLength, -basedRadius);
-				glVertex3f(rightBasedRadius - basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
 			}
 			else
 			{
 				// Front Face
-				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
-				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
 
 				// Back Face
-				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
-				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-				glVertex3f(rightBasedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
 
 				// Left Face
-				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
-				glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-				glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
 
 				// Right Face
-				glVertex3f(rightBasedRadius, halfLength, basedRadius);
-				glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-				glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
 
 				// Top Face
-				glVertex3f(leftBasedRadius + basedRadius, halfLength, basedRadius);
-				glVertex3f(leftBasedRadius + basedRadius, halfLength, -basedRadius);
-				glVertex3f(rightBasedRadius, halfLength, -basedRadius);
-				glVertex3f(rightBasedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
 			}
 		}
 		glEnd();
@@ -1234,34 +1271,34 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 		glBegin(GL_QUADS);
 		{
 			// Front Face
-			glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-			glVertex3f(leftBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
+			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Back Face
-			glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
-			glVertex3f(rightBasedRadius, 0.0f, basedRadius);
-			glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
+			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
 
 			// Left Face
-			glVertex3f(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
-			glVertex3f(leftBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
+			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Right Face
-			glVertex3f(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-			glVertex3f(rightBasedRadius, 0.0f, basedRadius);
-			glVertex3f(rightBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
+			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
 
 			// Bottom Face
-			glVertex3f(leftBasedRadius, 0.0f, basedRadius);
-			glVertex3f(leftBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, 0.0f, -basedRadius);
-			glVertex3f(rightBasedRadius, 0.0f, basedRadius);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
 		}
 		glEnd();
 
@@ -1326,16 +1363,16 @@ void drawArmorPlane(GLfloat radius, GLfloat bulge)
 	glBegin(GL_QUADS);
 	{
 		glColor3f(1, 1, 1);
-		glVertex3f(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
-		glVertex3f(radius * cos(120 * PI / 180) * 3 / 4, radius * sin(120 * PI / 180) * 3 / 4, bulge / 2);
-		glVertex3f(radius * cos(225 * PI / 180) * 3 / 4, radius * sin(225 * PI / 180) * 3 / 4, bulge / 2);
-		glVertex3f(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
+		drawNormalizedVertex(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
+		drawNormalizedVertex(radius * cos(120 * PI / 180) * 3 / 4, radius * sin(120 * PI / 180) * 3 / 4, bulge / 2);
+		drawNormalizedVertex(radius * cos(225 * PI / 180) * 3 / 4, radius * sin(225 * PI / 180) * 3 / 4, bulge / 2);
+		drawNormalizedVertex(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
 
 		glColor3f(0, 0, 0);
-		glVertex3f(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
-		glVertex3f(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
-		glVertex3f(radius * cos(315 * PI / 180) * 3 / 4, radius * sin(315 * PI / 180) * 3 / 4, bulge / 2);
-		glVertex3f(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, bulge / 2);
+		drawNormalizedVertex(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
+		drawNormalizedVertex(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
+		drawNormalizedVertex(radius * cos(315 * PI / 180) * 3 / 4, radius * sin(315 * PI / 180) * 3 / 4, bulge / 2);
+		drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, bulge / 2);
 	}
 	glEnd();
 }
@@ -1352,30 +1389,30 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 		glBegin(GL_QUAD_STRIP);
 		{
 			glColor3f(0, 0, 1);
-			glVertex3f(0.0f, radius, -totalDepth * 1 / 5);
-			glVertex3f(0.0f, radius, -totalDepth * 1 / 10);
+			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
+			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
 
 			glColor3f(0, 0, 0);
-			glVertex3f(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
-			glVertex3f(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+			drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
+			drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
 
 			glColor3f(1, 0, 0);
-			glVertex3f(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
-			glVertex3f(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+			drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
+			drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
 
-			glVertex3f(0.0f, -radius * 3 / 4, -totalDepth * 1 / 5);
-			glVertex3f(0.0f, -radius * 3 / 4, -totalDepth * 1 / 10);
+			drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 5);
+			drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 10);
 
 			glColor3f(0, 1, 0);
-			glVertex3f(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
-			glVertex3f(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+			drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
+			drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
 
 			glColor3f(0, 0, 1);
-			glVertex3f(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
-			glVertex3f(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+			drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
+			drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
 
-			glVertex3f(0.0f, radius, -totalDepth * 1 / 5);
-			glVertex3f(0.0f, radius, -totalDepth * 1 / 10);
+			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
+			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
 		}
 		glEnd();
 
@@ -1539,52 +1576,52 @@ void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
 		{
 			// Top Face
 			glColor3f(0, 0, 0);
-			glVertex3f(-height / 2, height / 2, height * 3 / 8);
-			glVertex3f(-height / 2, height / 2, -height * 3 / 8);
-			glVertex3f(height / 4, height / 2, -height * 3 / 8);
-			glVertex3f(height / 4, height / 2, height * 3 / 8);
+			drawNormalizedVertex(-height / 2, height / 2, height * 3 / 8);
+			drawNormalizedVertex(-height / 2, height / 2, -height * 3 / 8);
+			drawNormalizedVertex(height / 4, height / 2, -height * 3 / 8);
+			drawNormalizedVertex(height / 4, height / 2, height * 3 / 8);
 
 			// Front Top Slope
 			glColor3f(0, 0, 1);
-			glVertex3f(-height / 2, height / 2, -height * 3 / 8);
-			glVertex3f(-height * 3 / 4, height * 1 / 6, -height / 2);
-			glVertex3f(height / 2, height * 1 / 6, -height / 2);
-			glVertex3f(height / 4, height / 2, -height * 3 / 8);
+			drawNormalizedVertex(-height / 2, height / 2, -height * 3 / 8);
+			drawNormalizedVertex(-height * 3 / 4, height * 1 / 6, -height / 2);
+			drawNormalizedVertex(height / 2, height * 1 / 6, -height / 2);
+			drawNormalizedVertex(height / 4, height / 2, -height * 3 / 8);
 
 			// Back Top Slope
 			glColor3f(0, 1, 0);
-			glVertex3f(-height / 2, height / 2, height * 3 / 8);
-			glVertex3f(-height * 3 / 4, height * 1 / 6, height / 2);
-			glVertex3f(height / 2, height * 1 / 6, height / 2);
-			glVertex3f(height / 4, height / 2, height * 3 / 8);
+			drawNormalizedVertex(-height / 2, height / 2, height * 3 / 8);
+			drawNormalizedVertex(-height * 3 / 4, height * 1 / 6, height / 2);
+			drawNormalizedVertex(height / 2, height * 1 / 6, height / 2);
+			drawNormalizedVertex(height / 4, height / 2, height * 3 / 8);
 
 			// Left Top Slope
 			glColor3f(0, 1, 1);
-			glVertex3f(-height / 2, height / 2, height * 3 / 8);
-			glVertex3f(-height * 3 / 4, height * 1 / 6, height / 2);
-			glVertex3f(-height * 3 / 4, height * 1 / 6, -height / 2);
-			glVertex3f(-height / 2, height / 2, -height * 3 / 8);
+			drawNormalizedVertex(-height / 2, height / 2, height * 3 / 8);
+			drawNormalizedVertex(-height * 3 / 4, height * 1 / 6, height / 2);
+			drawNormalizedVertex(-height * 3 / 4, height * 1 / 6, -height / 2);
+			drawNormalizedVertex(-height / 2, height / 2, -height * 3 / 8);
 
 			// Left Face
 			glColor3f(1, 0, 0);
-			glVertex3f(-height * 3 / 4, height * 1 / 6, height / 2);
-			glVertex3f(-height * 3 / 4, -height / 2, height / 2);
-			glVertex3f(-height * 3 / 4, -height / 2, -height / 2);
-			glVertex3f(-height * 3 / 4, height * 1 / 6, -height / 2);
+			drawNormalizedVertex(-height * 3 / 4, height * 1 / 6, height / 2);
+			drawNormalizedVertex(-height * 3 / 4, -height / 2, height / 2);
+			drawNormalizedVertex(-height * 3 / 4, -height / 2, -height / 2);
+			drawNormalizedVertex(-height * 3 / 4, height * 1 / 6, -height / 2);
 
 			// Right Bottom Slope
 			glColor3f(1, 0, 1);
-			glVertex3f(height * 3 / 4, -height * 1 / 6, -height / 2);
-			glVertex3f(height / 4, -height / 2, -height / 2);
-			glVertex3f(height / 4, -height / 2, height / 2);
-			glVertex3f(height * 3 / 4, -height * 1 / 6, height / 2);
+			drawNormalizedVertex(height * 3 / 4, -height * 1 / 6, -height / 2);
+			drawNormalizedVertex(height / 4, -height / 2, -height / 2);
+			drawNormalizedVertex(height / 4, -height / 2, height / 2);
+			drawNormalizedVertex(height * 3 / 4, -height * 1 / 6, height / 2);
 
 			// Bottom Face
 			glColor3f(1, 1, 0);
-			glVertex3f(-height * 3 / 4, -height / 2, height / 2);
-			glVertex3f(-height * 3 / 4, -height / 2, -height / 2);
-			glVertex3f(height / 4, -height / 2, -height / 2);
-			glVertex3f(height / 4, -height / 2, height / 2);
+			drawNormalizedVertex(-height * 3 / 4, -height / 2, height / 2);
+			drawNormalizedVertex(-height * 3 / 4, -height / 2, -height / 2);
+			drawNormalizedVertex(height / 4, -height / 2, -height / 2);
+			drawNormalizedVertex(height / 4, -height / 2, height / 2);
 		}
 		glEnd();
 
@@ -1592,11 +1629,11 @@ void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
 		{
 			// Front Face
 			glColor3f(1, 1, 1);
-			glVertex3f(-height * 3 / 4, height * 1 / 6, -height / 2);
-			glVertex3f(-height * 3 / 4, -height / 2, -height / 2);
-			glVertex3f(height / 4, -height / 2, -height / 2);
-			glVertex3f(height * 3 / 4, -height * 1 / 6, -height / 2);
-			glVertex3f(height / 2, height * 1 / 6, -height / 2);
+			drawNormalizedVertex(-height * 3 / 4, height * 1 / 6, -height / 2);
+			drawNormalizedVertex(-height * 3 / 4, -height / 2, -height / 2);
+			drawNormalizedVertex(height / 4, -height / 2, -height / 2);
+			drawNormalizedVertex(height * 3 / 4, -height * 1 / 6, -height / 2);
+			drawNormalizedVertex(height / 2, height * 1 / 6, -height / 2);
 		}
 		glEnd();
 
@@ -1604,11 +1641,11 @@ void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
 		{
 			// Back Face
 			glColor3f(0, 0, 0.5);
-			glVertex3f(-height * 3 / 4, height * 1 / 6, height / 2);
-			glVertex3f(-height * 3 / 4, -height / 2, height / 2);
-			glVertex3f(height / 4, -height / 2, height / 2);
-			glVertex3f(height * 3 / 4, -height * 1 / 6, height / 2);
-			glVertex3f(height / 2, height * 1 / 6, height / 2);
+			drawNormalizedVertex(-height * 3 / 4, height * 1 / 6, height / 2);
+			drawNormalizedVertex(-height * 3 / 4, -height / 2, height / 2);
+			drawNormalizedVertex(height / 4, -height / 2, height / 2);
+			drawNormalizedVertex(height * 3 / 4, -height * 1 / 6, height / 2);
+			drawNormalizedVertex(height / 2, height * 1 / 6, height / 2);
 		}
 		glEnd();
 
@@ -1616,12 +1653,12 @@ void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
 		{
 			// Right Top Slope
 			glColor3f(0.5, 0, 0);
-			glVertex3f(height / 4, height / 2, -height * 3 / 8);
-			glVertex3f(height / 2, height * 1 / 6, -height / 2);
-			glVertex3f(height * 3 / 4, -height * 1 / 6, -height / 2);
-			glVertex3f(height * 3 / 4, -height * 1 / 6, height / 2);
-			glVertex3f(height / 2, height * 1 / 6, height / 2);
-			glVertex3f(height / 4, height / 2, height * 3 / 8);
+			drawNormalizedVertex(height / 4, height / 2, -height * 3 / 8);
+			drawNormalizedVertex(height / 2, height * 1 / 6, -height / 2);
+			drawNormalizedVertex(height * 3 / 4, -height * 1 / 6, -height / 2);
+			drawNormalizedVertex(height * 3 / 4, -height * 1 / 6, height / 2);
+			drawNormalizedVertex(height / 2, height * 1 / 6, height / 2);
+			drawNormalizedVertex(height / 4, height / 2, height * 3 / 8);
 		}
 		glEnd();
 
@@ -1800,12 +1837,8 @@ void drawCompleteArms(GLfloat shoulderHeight, GLfloat armorDepth, GLfloat armLen
 			}
 		}
 		// mode == 5 triggered
-		//glRotatef(rotateShoulderJointX, 1.0f, 0.0f, 0.0f);
-		//glRotatef(rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
-		//glRotatef(rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
 		if (isRight)
 		{
-			//rotateShoulderJointZ = restSpeed / 32 * 5.0f;
 			glRotatef(rotateShoulderJointX, 1.0f, 0.0f, 0.0f);
 			glRotatef(rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
 			glRotatef(rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
@@ -1878,12 +1911,142 @@ void drawBody(GLenum mode, GLfloat radius, int sliceNo, int stackNo)
 	//gluDeleteQuadric(sphere);
 }
 
-void drawRobot()
+void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius, GLfloat fingerTipRadius, GLfloat plamLength)
 {
-	glColor3f(1.0f, 1.0f, 1.0f);
-	drawBody(GL_LINE_STRIP, 0.5f, 30, 30);
-	//glColor3f(1.0f, 0.0f, 0.0f);
-	//drawBody(GL_LINE_STRIP, 0.1f, 50, 50);
+	GLfloat trimRadius = mainRadius / 13;
+	GLdouble headTrim[4] = { 0.0, 1.0, 0.0, 0.0 };
+	GLfloat shoulderHeight = mainRadius / 2;
+	GLfloat armLength = mainRadius * 2;
+	GLfloat armorDepth = shoulderHeight / 0.65f;
+
+	// Head
+	if (onRest)
+	{
+		if (firstRest)
+		{
+			restSpeed = 0.0f;
+			firstRest = false;
+		}
+		else
+		{
+			if (restSpeed > 0.0f)
+			{
+				restSpeed -= 0.0175f;
+			}
+		}
+	}
+	else
+	{
+		if (restSpeed < 35.0f)
+		{
+			restSpeed += 0.0175f;
+		}
+	}
+	glTranslatef(0.0f, restSpeed / 35 * 0.1f, 0.0f);
+	drawHead(mainRadius, trimRadius, 0.0f, 0.0f, 0.0f, headRotate, 1.0f, 0.0f, 0.0f, headTrim);
+
+	// 4 Arms
+	//	Right Front
+	glPushMatrix();
+	{
+		glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef(0.325f + 0.325 / 4, 0.0f, -0.325f / 4);
+		drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, true);
+	}
+	glPopMatrix();
+
+	//	Right Back
+	glPushMatrix();
+	{
+		glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef(0.325f + 0.325 / 4, 0.0f, 0.325f / 4);
+		drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, true);
+	}
+	glPopMatrix();
+
+	//	Left Front
+	glPushMatrix();
+	{
+		glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.325f - 0.325 / 4, 0.0f, -0.325f / 4);
+		drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, false);
+	}
+	glPopMatrix();
+
+	//	Left Back
+	glPushMatrix();
+	{
+		glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
+		glTranslatef(-0.325f - 0.325 / 4, 0.0f, 0.325f / 4);
+		drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, false);
+	}
+	glPopMatrix();
+
+	// Hands
+	glPushMatrix();
+	{
+		if (onHand)
+		{
+			if (handSize < 1.0f)
+			{
+				handSize += 0.001f;
+			}
+		}
+		else
+		{
+			if (firstHand)
+			{
+				handSize = 0.0f;
+				firstHand = false;
+			}
+			else
+			{
+				if (handSize > 0.0f)
+				{
+					handSize -= 0.001f;
+				}
+			}
+		}
+		glScalef(handSize, handSize, handSize);
+
+		glPushMatrix();
+		{
+			// mode == 4 triggered
+			glRotatef(rotateHandX, 1.0f, 0.0f, 0.0f);
+			glRotatef(rotateHandY, 0.0f, 1.0f, 0.0f);
+			glRotatef(rotateHandZ, 0.0f, 0.0f, 1.0f);
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, -punchSpeed);
+				glTranslatef(mainRadius / 2, mainRadius * 2, 0.0f);
+				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
+				glTranslatef(-mainRadius / 2, -mainRadius * 2, 0.0f);
+				glTranslatef(mainRadius / 2, mainRadius * 2, 0.0f);
+				glRotatef(90.0, 1.0, 0.0, 0.0);
+				glRotatef(180.0, 0.0, 1.0, 0.0);
+				drawPalm(wristJointRadius, fingerTipRadius, plamLength, true);
+			}
+			glPopMatrix();
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, punchSpeed);
+				glTranslatef(-mainRadius / 2, mainRadius * 2, 0.0f);
+				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
+				glTranslatef(mainRadius / 2, -mainRadius * 2, 0.0f);
+				glTranslatef(-mainRadius / 2, mainRadius * 2, 0.0f);
+				glRotatef(90.0, 1.0, 0.0, 0.0);
+				glRotatef(180.0f, 0.0, 1.0, 0.0);
+				drawPalm(wristJointRadius, fingerTipRadius, plamLength, false);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
 }
 
 //glBindTexture(GL_TEXTURE_2D, texTexture);
@@ -1996,107 +2159,12 @@ void display()
 		}
 		glPopMatrix();
 
-		// Head
-		GLfloat headRadius = 0.325f;
-		GLfloat trimRadius = 0.025f;
-
-		GLdouble headTrim[4] = { 0.0, 1.0, 0.0, 0.0 };
-		if (onRest)
-		{
-			if (firstRest)
-			{
-				restSpeed = 0.0f;
-				firstRest = false;
-			}
-			else
-			{
-				if (restSpeed > 0.0f)
-				{
-					restSpeed -= 0.0175f;
-				}
-			}
-		}
-		else
-		{
-			if (restSpeed < 35.0f)
-			{
-				restSpeed += 0.0175f;
-			}
-		}
-		glTranslatef(0.0f, restSpeed / 35 * 0.1f, 0.0f);
-		drawHead(0.325f, 0.025f, 0.0f, 0.0f, 0.0f, 20.0f, 1.0f, 0.0f, 0.0f, headTrim);
-
-		// Hands
-		GLfloat partLength = 0.325;
-		GLfloat wristJointRadius = 0.0175f;
-		GLfloat fingerTipRadius = 0.0125f;
-		GLfloat plamLength = 0.085f;
-		glPushMatrix();
-		{
-			if (onHand)
-			{
-				if (handSize < 1.0f)
-				{
-					handSize += 0.001f;
-				}
-			}
-			else
-			{
-				if (firstHand)
-				{
-					handSize = 0.0f;
-					firstHand = false;
-				}
-				else
-				{
-					if (handSize > 0.0f)
-					{
-						handSize -= 0.001f;
-					}
-				}
-			}
-			glScalef(handSize, handSize, handSize);
-
-			glPushMatrix();
-			{
-				//glTranslatef(-0.3f, 0.0f, 0.0f);
-				// mode == 4 triggered
-				glRotatef(rotateHandX, 1.0f, 0.0f, 0.0f);
-				glRotatef(rotateHandY, 0.0f, 1.0f, 0.0f);
-				glRotatef(rotateHandZ, 0.0f, 0.0f, 1.0f);
-				glPushMatrix();
-				{
-					glTranslatef(partLength / 2, partLength * 2, 0.0f);
-					glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
-					glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
-					glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
-					glTranslatef(-partLength / 2, -partLength * 2, 0.0f);
-					glTranslatef(partLength / 2, partLength * 2, 0.0f);
-					glRotatef(90.0, 1.0, 0.0, 0.0);
-					glRotatef(180.0, 0.0, 1.0, 0.0);
-					//glTranslatef(plamLength / 3, 0.0f, 0.0f);
-					drawPalm(wristJointRadius, fingerTipRadius, plamLength, true);
-				}
-				glPopMatrix();
-				glPushMatrix();
-				{
-					glTranslatef(-partLength / 2, partLength * 2, 0.0f);
-					glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
-					glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
-					glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
-					glTranslatef(partLength / 2, -partLength * 2, 0.0f);
-					glTranslatef(-partLength / 2, partLength * 2, 0.0f);
-					glRotatef(90.0, 1.0, 0.0, 0.0);
-					glRotatef(180.0f, 0.0, 1.0, 0.0);
-					glTranslatef(plamLength / 3, 0.0f, 0.0f);
-					drawPalm(wristJointRadius, fingerTipRadius, plamLength, false);
-				}
-				glPopMatrix();
-				//drawHand(wristJointRadius, fingerTipRadius, handLength, isRight);
-			}
-			glPopMatrix();
-		}
-		glPopMatrix();
+		GLfloat mainRadius = 0.325f;
+		GLfloat headRotate = 20.0f;
+		GLfloat wristJointRadius = 0.02625f;
+		GLfloat fingerTipRadius = 0.01875f;
+		GLfloat plamLength = 0.1275f;
+		drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, plamLength);
 
 		// Eye
 		//drawEyeTube(sqrt(pow(0.325f, 2) - pow(0.325f - 0.025f, 2)), 0.35f);
@@ -2168,46 +2236,6 @@ void display()
 		//drawArm(0.65f / 8, 0.65f / 8, 0.65f);
 		//glPopMatrix();
 		//glPopMatrix();
-
-		// 4 Arms
-		GLfloat shoulderHeight = 0.325f / 2; // 0.325f
-		GLfloat armorDepth = 0.25f;
-		GLfloat armLength = 0.65f;
-		//	Right Front
-		glPushMatrix();
-		{
-			glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
-			glTranslatef(0.325f + 0.325 / 4, 0.0f, -0.325f / 4);
-			drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, true);
-		}
-		glPopMatrix();
-
-		//	Right Back
-		glPushMatrix();
-		{
-			glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
-			glTranslatef(0.325f + 0.325 / 4, 0.0f, 0.325f / 4);
-			drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, true);
-		}
-		glPopMatrix();
-
-		//	Left Front
-		glPushMatrix();
-		{
-			glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
-			glTranslatef(-0.325f - 0.325 / 4, 0.0f, -0.325f / 4);
-			drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, false);
-		}
-		glPopMatrix();
-
-		//	Left Back
-		glPushMatrix();
-		{
-			glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
-			glTranslatef(-0.325f - 0.325 / 4, 0.0f, 0.325f / 4);
-			drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, false);
-		}
-		glPopMatrix();
 
 		//glPushMatrix();
 		//glScalef(1.5, 1.5, 1.5);
