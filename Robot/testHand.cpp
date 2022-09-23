@@ -401,7 +401,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 	glPopMatrix();
 }
 
-void drawShieldPlane(GLfloat radius, GLfloat bulge)
+void drawArmorPlane(GLfloat radius, GLfloat bulge)
 {
 	//glBegin(GL_TRIANGLES);
 	//{
@@ -438,7 +438,7 @@ void drawShieldPlane(GLfloat radius, GLfloat bulge)
 	glEnd();
 }
 
-void drawShield(GLfloat radius, GLfloat totalDepth)
+void drawArmor(GLfloat radius, GLfloat totalDepth)
 {
 	GLUquadricObj* quad = gluNewQuadric();
 
@@ -477,11 +477,11 @@ void drawShield(GLfloat radius, GLfloat totalDepth)
 		glEnd();
 
 		// Shield Faces
-		drawShieldPlane(radius, totalDepth * 1 / 5);
+		drawArmorPlane(radius, totalDepth * 1 / 5);
 		glPushMatrix();
 		{
 			glTranslatef(0.0f, 0.0f, -totalDepth * 1 / 10);
-			drawShieldPlane(radius, totalDepth * 1 / 5);
+			drawArmorPlane(radius, totalDepth * 1 / 5);
 		}
 		glPopMatrix();
 
@@ -516,7 +516,7 @@ void drawHand(boolean isRight)
 			glTranslatef(-basedRadius / 2, totalLength * sin(45 * PI / 180) * 3 / 4, totalDepth);
 		}
 		glRotatef(180.0f, 0.0f, 1.0f, 0.05f);
-		drawShield(totalLength * 1.25, totalDepth);
+		drawArmor(totalLength * 1.25, totalDepth);
 	}
 	glPopMatrix();
 }

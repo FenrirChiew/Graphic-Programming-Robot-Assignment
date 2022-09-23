@@ -22,18 +22,18 @@ int direction = 0;
 
 // Projection Attributes
 boolean isOrtho = true;
-float r = 2.0f;
-float angle = 90.0f;
-float eyeX = r * sin(angle * 3.142 / 180.0);
-float eyeY = r;
-float eyeZ = r * cos(angle * 3.142 / 180.0);
-float lookAtX = 0.0f;
-float lookAtY = 0.0f;
-float lookAtZ = 0.0f;
-float upX = 0.0f;
-float upY = 1.0f;
-float upZ = 0.0f;
-float cameraSpeed = 10.0f;
+GLfloat r = 2.0f;
+GLfloat angle = 90.0f;
+GLfloat eyeX = r * sin(angle * 3.142 / 180.0);
+GLfloat eyeY = r;
+GLfloat eyeZ = r * cos(angle * 3.142 / 180.0);
+GLfloat lookAtX = 0.0f;
+GLfloat lookAtY = 0.0f;
+GLfloat lookAtZ = 0.0f;
+GLfloat upX = 0.0f;
+GLfloat upY = 1.0f;
+GLfloat upZ = 0.0f;
+GLfloat cameraSpeed = 10.0f;
 
 // Robot Attributes
 GLint headSlices = 50;
@@ -43,27 +43,44 @@ GLint tubeStacks = 20;
 GLint kunaiSlices = 10;
 GLint kunaiStacks = 10;
 boolean isGrab = false;
-float rotateFinger = 90.0f;
-float rotateTumb = -45.0f;
-float rotateWheel = 0.0f;
-float rotateShoulderJointX = 0.0f;
-float rotateShoulderJointY = 0.0f;
-float rotateShoulderJointZ = 0.0f;
-float rotateUpperArmJointX = 0.0f;
-float rotateUpperArmJointY = 0.0f;
-float rotateUpperArmJointZ = 0.0f;
-float rotateElbowJointX = 30.0f;
-float rotateElbowJointY = 0.0f;
-float rotateElbowJointZ = -90.0f;
-float rotateWristJointX = 0.0f;
-float rotateWristJointY = 5.0f;
-float rotateWristJointZ = 0.0f;
-float speed = 15.0f;
+GLfloat rotateFinger = 90.0f;
+GLfloat rotateTumb = -45.0f;
+GLfloat rotateWheel = 0.0f;
+GLfloat rotateShoulderJointX = 0.0f;
+GLfloat rotateShoulderJointY = 0.0f;
+GLfloat rotateShoulderJointZ = -5.0f;
+GLfloat rotateUpperArmJointX = 0.0f;
+GLfloat rotateUpperArmJointY = 0.0f;
+GLfloat rotateUpperArmJointZ = 0.0f;
+GLfloat rotateElbowJointX = 30.0f;
+GLfloat rotateElbowJointY = 0.0f;
+GLfloat rotateElbowJointZ = -90.0f;
+GLfloat rotateWristJointX = 0.0f;
+GLfloat rotateWristJointY = 5.0f;
+GLfloat rotateWristJointZ = 0.0f;
+GLfloat speed = 15.0f;
+boolean onArmor = false;
+boolean firstArmor = true;
+GLfloat armorSpeed = 0.0f;
+GLfloat armorSize = 1.0f;
+boolean onRest = true;
+boolean firstRest = true;
+GLfloat restSpeed = 0.0f;
+boolean onHand = false;
+boolean firstHand = true;
+GLfloat handSpeed = 0.0f;
+GLfloat handSize = 1.0f;
+GLfloat rotatePlamX = 0.0f;
+GLfloat rotatePlamY = 0.0f;
+GLfloat rotatePlamZ = 0.0f;
+GLfloat rotateHandX = 0.0f;
+GLfloat rotateHandY = 0.0f;
+GLfloat rotateHandZ = 0.0f;
 
 // Rotate Attributes
-float objectRotateX = 0.0f;
-float objectRotateY = 0.0f;
-float objectRotateZ = 0.0f;
+GLfloat objectRotateX = 0.0f;
+GLfloat objectRotateY = 0.0f;
+GLfloat objectRotateZ = 0.0f;
 
 // Light Attributes
 GLfloat lightX = 0.0f;
@@ -93,7 +110,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 			mode = 0;
 		}
-		else if (wParam == VK_NUMPAD1)	// Eye
+		else if (wParam == VK_NUMPAD1)	// gluLookAt()
 		{
 			mode = 1;
 		}
@@ -101,23 +118,23 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 			mode = 2;
 		}
-		else if (wParam == VK_NUMPAD3)	// LookAt
+		else if (wParam == VK_NUMPAD3)	// Texture
 		{
 			mode = 3;
 		}
-		else if (wParam == VK_NUMPAD4)	// Up
+		else if (wParam == VK_NUMPAD4)	// Robot Finger
 		{
 			mode = 4;
 		}
-		else if (wParam == VK_NUMPAD5)	// Texture
+		else if (wParam == VK_NUMPAD5)	// Robot Arms
 		{
 			mode = 5;
 		}
-		else if (wParam == VK_NUMPAD6)	// Robot Finger
+		else if (wParam == VK_NUMPAD6)	// Robot Animation
 		{
 			mode = 6;
 		}
-		else if (wParam == VK_NUMPAD7)	// Robot Arms
+		else if (wParam == VK_NUMPAD7)	// Robot Weapon
 		{
 			mode = 7;
 		}
@@ -128,11 +145,13 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		else if (wParam == ' ')
 		{
 			materialType = 1;
-			r = 2.0f;
-			angle = 90.0f;
+			// Object Rotation
 			//objectRotateX = 0.0f;
 			//objectRotateY = 0.0f;
 			//objectRotateZ = 0.0f;
+			// gluLookAt()
+			r = 2.0f;
+			angle = 90.0f;
 			eyeX = r * sin(angle * 3.142 / 180.0);
 			eyeY = r;
 			eyeZ = r * cos(angle * 3.142 / 180.0);
@@ -142,21 +161,47 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			upX = 0.0f;
 			upY = 1.0f;
 			upZ = 0.0f;
+			// Finger
 			rotateFinger = 90.0f;
 			rotateTumb = -45.0f;
+			// Wheel
 			rotateWheel = 0.0f;
+			// Shoulder
 			rotateShoulderJointX = 0.0f;
 			rotateShoulderJointY = 0.0f;
-			rotateShoulderJointZ = 0.0f;
+			rotateShoulderJointZ = -5.0f;
+			// Upper Arm
 			rotateUpperArmJointX = 0.0f;
 			rotateUpperArmJointY = 0.0f;
 			rotateUpperArmJointZ = 0.0f;
+			// Elbow
 			rotateElbowJointX = 30.0f;
 			rotateElbowJointY = 0.0f;
 			rotateElbowJointZ = -90.0f;
+			// Wrist
 			rotateWristJointX = 0.0f;
 			rotateWristJointY = 5.0f;
 			rotateWristJointZ = 0.0f;
+			// Armor
+			onArmor = false;
+			firstArmor = true;
+			armorSpeed = 0.0f;
+			armorSize = 1.0f;
+			// Rest
+			onRest = true;
+			firstRest = true;
+			restSpeed = 0.0f;
+			// Hand
+			onHand = false;
+			firstHand = true;
+			handSpeed = 0.0f;
+			handSize = 1.0f;
+			rotatePlamX = 0.0f;
+			rotatePlamY = 0.0f;
+			rotatePlamZ = 0.0f;
+			rotateHandX = 0.0f;
+			rotateHandY = 0.0f;
+			rotateHandZ = 0.0f;
 			// lightX
 			positionLight0[0] = 0.0f;
 			// lightY
@@ -186,6 +231,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		}
 		if (mode == 1)
 		{
+			// Eye
 			if (wParam == 'D')	// Right
 			{
 				angle += 5;
@@ -238,6 +284,58 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				//eyeZ += cameraSpeed * elapsedSeconds;
 				//rotatez += 0.5f * elapsedSeconds;
 			}
+
+			// LookAt
+			if (wParam == 'H')
+			{
+				lookAtX += cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'F')
+			{
+				lookAtX -= cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'T')
+			{
+				lookAtY += cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'G')
+			{
+				lookAtY -= cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'R')
+			{
+				lookAtZ += cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'Y')
+			{
+				lookAtZ -= cameraSpeed * elapsedSeconds;
+			}
+
+			// Up
+			if (wParam == 'L')
+			{
+				upX += cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'J')
+			{
+				upX -= cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'I')
+			{
+				upY += cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'K')
+			{
+				upY -= cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'U')
+			{
+				upZ += cameraSpeed * elapsedSeconds;
+			}
+			else if (wParam == 'O')
+			{
+				upZ -= cameraSpeed * elapsedSeconds;
+			}
 		}
 		if (mode == 2)
 		{
@@ -278,61 +376,64 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		}
 		if (mode == 3)
 		{
-			if (wParam == 'D')
-			{
-				lookAtX += cameraSpeed * elapsedSeconds;
-			}
-			else if (wParam == 'A')
-			{
-				lookAtX -= cameraSpeed * elapsedSeconds;
-			}
-			else if (wParam == 'W')
-			{
-				lookAtY += cameraSpeed * elapsedSeconds;
-			}
-			else if (wParam == 'S')
-			{
-				lookAtY -= cameraSpeed * elapsedSeconds;
-			}
-			else if (wParam == 'Q')
-			{
-				lookAtZ += cameraSpeed * elapsedSeconds;
-			}
-			else if (wParam == 'E')
-			{
-				lookAtZ -= cameraSpeed * elapsedSeconds;
-			}
 		}
 		if (mode == 4)
 		{
-			if (wParam == 'D')
+			if (wParam == 'W')
 			{
-				upX += cameraSpeed * elapsedSeconds;
-			}
-			else if (wParam == 'A')
-			{
-				upX -= cameraSpeed * elapsedSeconds;
-			}
-			else if (wParam == 'W')
-			{
-				upY += cameraSpeed * elapsedSeconds;
+				rotatePlamX += speed * elapsedSeconds;
 			}
 			else if (wParam == 'S')
 			{
-				upY -= cameraSpeed * elapsedSeconds;
+				rotatePlamX -= speed * elapsedSeconds;
 			}
-			else if (wParam == 'Q')
+			else if (wParam == 'A')
 			{
-				upZ += cameraSpeed * elapsedSeconds;
+				rotatePlamZ += speed * elapsedSeconds;
+			}
+			else if (wParam == 'D')
+			{
+				rotatePlamZ -= speed * elapsedSeconds;
 			}
 			else if (wParam == 'E')
 			{
-				upZ -= cameraSpeed * elapsedSeconds;
+				rotatePlamY += speed * elapsedSeconds;
 			}
-		}
-		if (mode == 6)
-		{
-			if (wParam == 'W')
+			else if (wParam == 'Q')
+			{
+				rotatePlamY -= speed * elapsedSeconds;
+			}
+			else if (wParam == 'T')
+			{
+				rotatePlamX += speed * elapsedSeconds;
+				rotateHandX -= speed * elapsedSeconds;
+			}
+			else if (wParam == 'G')
+			{
+				rotatePlamX -= speed * elapsedSeconds;
+				rotateHandX += speed * elapsedSeconds;
+			}
+			else if (wParam == 'H')
+			{
+				rotatePlamZ -= speed * elapsedSeconds;
+				rotateHandZ += speed * elapsedSeconds;
+			}
+			else if (wParam == 'F')
+			{
+				rotatePlamZ += speed * elapsedSeconds;
+				rotateHandZ -= speed * elapsedSeconds;
+			}
+			else if (wParam == 'Y')
+			{
+				rotatePlamY += speed * elapsedSeconds;
+				rotateHandY -= speed * elapsedSeconds;
+			}
+			else if (wParam == 'R')
+			{
+				rotatePlamY -= speed * elapsedSeconds;
+				rotateHandY += speed * elapsedSeconds;
+			}
+			else if (wParam == 'Z')
 			{
 				if (rotateFinger < 90.0f)
 				{
@@ -343,7 +444,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					rotateTumb -= speed / 2 * elapsedSeconds;
 				}
 			}
-			else if (wParam == 'S')
+			else if (wParam == 'X')
 			{
 				if (rotateFinger > 0.0f)
 				{
@@ -355,7 +456,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				}
 			}
 		}
-		if (mode == 7)
+		if (mode == 5)
 		{
 			if (wParam == 'W')
 			{
@@ -367,10 +468,6 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				{
 					rotateUpperArmJointX += speed * elapsedSeconds;
 				}
-				//if (rotateArmJoint < 45.0f)
-				//{
-				//	rotateArmJoint += speed / 2 * elapsedSeconds;
-				//}
 			}
 			else if (wParam == 'S')
 			{
@@ -511,6 +608,25 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					rotateWristJointZ -= speed * elapsedSeconds;
 				}
 			}
+		}
+		if (mode == 6)
+		{
+			if (wParam == 'A')
+			{
+				onArmor = !onArmor;
+			}
+			else if (wParam == 'R')
+			{
+				onRest = !onRest;
+			}
+			else if (wParam == 'H')
+			{
+				onHand = !onHand;
+			}
+		}
+		if (mode == 7)
+		{
+
 		}
 		if (mode != 0)
 		{
@@ -977,7 +1093,7 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 		}
 		glPushMatrix();
 		{
-			// mode == 6 triggered
+			// mode == 4 triggered
 			if (isTumb)
 			{
 				if (isRight)
@@ -994,7 +1110,7 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 			glPushMatrix();
 			{
 				// C1
-				// mode == 6 triggered
+				// mode == 4 triggered
 				glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
 				glTranslatef(0.0f, 0.0f, -part1Length);
 				glColor3f(0, 0, 0);
@@ -1005,7 +1121,7 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 				glPushMatrix();
 				{
 					// C2
-					// mode == 6 triggered
+					// mode == 4 triggered
 					glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
 					glTranslatef(0.0f, 0.0f, -part2Length);
 					glColor3f(0, 0, 0);
@@ -1205,7 +1321,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 	glPopMatrix();
 }
 
-void drawShieldPlane(GLfloat radius, GLfloat bulge)
+void drawArmorPlane(GLfloat radius, GLfloat bulge)
 {
 	glBegin(GL_QUADS);
 	{
@@ -1224,7 +1340,7 @@ void drawShieldPlane(GLfloat radius, GLfloat bulge)
 	glEnd();
 }
 
-void drawShield(GLfloat radius, GLfloat totalDepth)
+void drawArmor(GLfloat radius, GLfloat totalDepth)
 {
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
@@ -1263,12 +1379,12 @@ void drawShield(GLfloat radius, GLfloat totalDepth)
 		}
 		glEnd();
 
-		// Shield Faces
-		drawShieldPlane(radius, totalDepth * 1 / 5);
+		// Armor Faces
+		drawArmorPlane(radius, totalDepth * 1 / 5);
 		glPushMatrix();
 		{
 			glTranslatef(0.0f, 0.0f, -totalDepth * 1 / 10);
-			drawShieldPlane(radius, totalDepth * 1 / 5);
+			drawArmorPlane(radius, totalDepth * 1 / 5);
 		}
 		glPopMatrix();
 
@@ -1303,7 +1419,7 @@ void drawHand(GLfloat basedRadius, GLfloat topRadius, GLfloat totalLength, boole
 		glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 		glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 		glRotatef(180.0f, 0.0f, 1.0f, 0.05f);
-		drawShield(totalLength * 1.25, totalDepth);
+		drawArmor(totalLength * 1.25, totalDepth);
 	}
 	glPopMatrix();
 }
@@ -1406,7 +1522,7 @@ void drawNail(GLfloat radius, GLfloat height)
 	glPopMatrix();
 }
 
-void drawShoulder(GLfloat height, GLfloat shieldDepth, boolean isRight) {
+void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
 
 	glPushMatrix();
 	{
@@ -1535,19 +1651,43 @@ void drawShoulder(GLfloat height, GLfloat shieldDepth, boolean isRight) {
 
 	glPushMatrix();
 	{
+		if (onArmor)
+		{
+			if (armorSize < 1.0f)
+			{
+				armorSize += 0.001f;
+			}
+		}
+		else
+		{
+			if (firstArmor)
+			{
+				armorSize = 0.0f;
+				firstArmor = false;
+			}
+			else
+			{
+				if (armorSize > 0.0f)
+				{
+					armorSize -= 0.001f;
+				}
+			}
+		}
+		glScalef(armorSize, armorSize, armorSize);
+
 		if (isRight)
 		{
-			glTranslatef(height * 3 / 4 + shieldDepth / 3, shieldDepth / 2, 0.0f);
+			glTranslatef(height * 3 / 4 + armorDepth / 3, armorDepth / 2, 0.0f);
 			glRotatef(-135.0, 0.0f, 0.0f, 1.0f);
 			glRotatef(90.0, 0.0f, 1.0f, 0.0f);
 		}
 		else
 		{
-			glTranslatef(-height * 3 / 4 - shieldDepth / 3, shieldDepth / 2, 0.0f);
+			glTranslatef(-height * 3 / 4 - armorDepth / 3, armorDepth / 2, 0.0f);
 			glRotatef(135.0, 0.0f, 0.0f, 1.0f);
 			glRotatef(-90.0, 0.0f, 1.0f, 0.0f);
 		}
-		drawShield(height, shieldDepth);
+		drawArmor(height, armorDepth);
 	}
 	glPopMatrix();
 }
@@ -1562,11 +1702,7 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
 
-	if (isRight)
-	{
-		//glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
-	}
-	else
+	if (!isRight)
 	{
 		glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
 	}
@@ -1575,11 +1711,14 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 	{
 		// S1
 		glTranslatef(0.0f, 0.0f, -partLength);
-		glRotatef(35.0f, 0.0f, 1.0f, 0.0f);
+		if (!firstRest)
+		{
+			glRotatef(restSpeed, 0.0f, 1.0f, 0.0f);
+		}
 		glColor3f(1, 1, 1);
 		gluSphere(quad, baseRadius, tubeSlices, tubeStacks);
 		//C1
-		// mode == 7 triggered
+		// mode == 5 triggered
 		glRotatef(rotateUpperArmJointX, 1.0f, 0.0f, 0.0f);
 		glRotatef(rotateUpperArmJointY, 0.0f, 1.0f, 0.0f);
 		glRotatef(rotateUpperArmJointZ, 0.0f, 0.0f, 1.0f);
@@ -1597,7 +1736,7 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 			glColor3f(1, 1, 1);
 			gluSphere(quad, centerRadius, tubeSlices, tubeStacks);
 			// C2
-			// mode == 7 triggered
+			// mode == 5 triggered
 			if (isRight)
 			{
 				glRotatef(rotateElbowJointX, 1.0f, 0.0f, 0.0f);
@@ -1609,7 +1748,6 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 				glRotatef(-rotateElbowJointX, 1.0f, 0.0f, 0.0f);
 				glRotatef(-rotateElbowJointY, 0.0f, 1.0f, 0.0f);
 				glRotatef(-rotateElbowJointZ, 0.0f, 0.0f, 1.0f);
-				//glRotatef(-55.0f, 0.0f, 1.0f, 0.0f);
 			}
 			glColor3f(0, 0, 0);
 			gluCylinder(quad, centerRadius, topRadius, partLength, tubeSlices, tubeStacks);
@@ -1620,7 +1758,7 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 				glColor3f(1, 1, 1);
 				gluSphere(quad, topRadius, tubeSlices, tubeStacks);
 				// C3
-				// mode == 7 triggered
+				// mode == 5 triggered
 				glRotatef(rotateWristJointX, 1.0f, 0.0f, 0.0f);
 				glRotatef(rotateWristJointY, 0.0f, 1.0f, 0.0f);
 				glRotatef(rotateWristJointZ, 0.0f, 0.0f, 1.0f);
@@ -1634,17 +1772,40 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 	glPopMatrix();
 }
 
-void drawCompleteArms(GLfloat shoulderHeight, GLfloat shieldDepth, GLfloat armLength, GLfloat wristJointRadius, boolean isRight)
+void drawCompleteArms(GLfloat shoulderHeight, GLfloat armorDepth, GLfloat armLength, GLfloat wristJointRadius, boolean isRight)
 {
 	// Shoulders
 	glPushMatrix();
 	{
-		// mode == 7 triggered
+		if (onRest)
+		{
+			if (firstRest)
+			{
+				restSpeed = 0.0f;
+				firstRest = false;
+			}
+			else
+			{
+				if (restSpeed > 0.0f)
+				{
+					restSpeed -= 0.0175f;
+				}
+			}
+		}
+		else
+		{
+			if (restSpeed < 35.0f)
+			{
+				restSpeed += 0.0175f;
+			}
+		}
+		// mode == 5 triggered
 		//glRotatef(rotateShoulderJointX, 1.0f, 0.0f, 0.0f);
 		//glRotatef(rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
 		//glRotatef(rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
 		if (isRight)
 		{
+			//rotateShoulderJointZ = restSpeed / 32 * 5.0f;
 			glRotatef(rotateShoulderJointX, 1.0f, 0.0f, 0.0f);
 			glRotatef(rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
 			glRotatef(rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
@@ -1655,7 +1816,19 @@ void drawCompleteArms(GLfloat shoulderHeight, GLfloat shieldDepth, GLfloat armLe
 			glRotatef(-rotateShoulderJointY, 0.0f, 1.0f, 0.0f);
 			glRotatef(-rotateShoulderJointZ, 0.0f, 0.0f, 1.0f);
 		}
-		drawShoulder(shoulderHeight, shieldDepth, isRight);
+		glPushMatrix();
+		{
+			if (isRight)
+			{
+				glRotatef(restSpeed / 32 * 5.0f, 0.0f, 0.0f, 1.0f);
+			}
+			else
+			{
+				glRotatef(-restSpeed / 32 * 5.0f, 0.0f, 0.0f, 1.0f);
+			}
+			drawShoulder(shoulderHeight, armorDepth, isRight);
+		}
+		glPopMatrix();
 
 		// Arm
 		GLfloat shouderJointRadius = shoulderHeight / 4; //0.65 / 8
@@ -1824,8 +1997,106 @@ void display()
 		glPopMatrix();
 
 		// Head
+		GLfloat headRadius = 0.325f;
+		GLfloat trimRadius = 0.025f;
+
 		GLdouble headTrim[4] = { 0.0, 1.0, 0.0, 0.0 };
+		if (onRest)
+		{
+			if (firstRest)
+			{
+				restSpeed = 0.0f;
+				firstRest = false;
+			}
+			else
+			{
+				if (restSpeed > 0.0f)
+				{
+					restSpeed -= 0.0175f;
+				}
+			}
+		}
+		else
+		{
+			if (restSpeed < 35.0f)
+			{
+				restSpeed += 0.0175f;
+			}
+		}
+		glTranslatef(0.0f, restSpeed / 35 * 0.1f, 0.0f);
 		drawHead(0.325f, 0.025f, 0.0f, 0.0f, 0.0f, 20.0f, 1.0f, 0.0f, 0.0f, headTrim);
+
+		// Hands
+		GLfloat partLength = 0.325;
+		GLfloat wristJointRadius = 0.0175f;
+		GLfloat fingerTipRadius = 0.0125f;
+		GLfloat plamLength = 0.085f;
+		glPushMatrix();
+		{
+			if (onHand)
+			{
+				if (handSize < 1.0f)
+				{
+					handSize += 0.001f;
+				}
+			}
+			else
+			{
+				if (firstHand)
+				{
+					handSize = 0.0f;
+					firstHand = false;
+				}
+				else
+				{
+					if (handSize > 0.0f)
+					{
+						handSize -= 0.001f;
+					}
+				}
+			}
+			glScalef(handSize, handSize, handSize);
+
+			glPushMatrix();
+			{
+				//glTranslatef(-0.3f, 0.0f, 0.0f);
+				// mode == 4 triggered
+				glRotatef(rotateHandX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotateHandY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotateHandZ, 0.0f, 0.0f, 1.0f);
+				glPushMatrix();
+				{
+					glTranslatef(partLength / 2, partLength * 2, 0.0f);
+					glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
+					glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
+					glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
+					glTranslatef(-partLength / 2, -partLength * 2, 0.0f);
+					glTranslatef(partLength / 2, partLength * 2, 0.0f);
+					glRotatef(90.0, 1.0, 0.0, 0.0);
+					glRotatef(180.0, 0.0, 1.0, 0.0);
+					//glTranslatef(plamLength / 3, 0.0f, 0.0f);
+					drawPalm(wristJointRadius, fingerTipRadius, plamLength, true);
+				}
+				glPopMatrix();
+				glPushMatrix();
+				{
+					glTranslatef(-partLength / 2, partLength * 2, 0.0f);
+					glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
+					glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
+					glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
+					glTranslatef(partLength / 2, -partLength * 2, 0.0f);
+					glTranslatef(-partLength / 2, partLength * 2, 0.0f);
+					glRotatef(90.0, 1.0, 0.0, 0.0);
+					glRotatef(180.0f, 0.0, 1.0, 0.0);
+					glTranslatef(plamLength / 3, 0.0f, 0.0f);
+					drawPalm(wristJointRadius, fingerTipRadius, plamLength, false);
+				}
+				glPopMatrix();
+				//drawHand(wristJointRadius, fingerTipRadius, handLength, isRight);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
 
 		// Eye
 		//drawEyeTube(sqrt(pow(0.325f, 2) - pow(0.325f - 0.025f, 2)), 0.35f);
@@ -1835,8 +2106,8 @@ void display()
 		// Palm
 		//drawPalm(0.0175f, 0.0125f, 0.085f);
 
-		// Shield
-		//drawShield(0.085f, 0.05f);
+		// Armor
+		//drawArmor(0.085f, 0.05f);
 
 		// Hands
 		//glPushMatrix();
@@ -1860,7 +2131,7 @@ void display()
 		//glPushMatrix();
 		//{
 		//	//glTranslatef(-0.3f, 0.0f, 0.0f);
-		//	// mode == 7 triggered
+		//	// mode == 5 triggered
 		//	glRotatef(rotateUpperArmJointX, 1.0f, 0.0f, 0.0f);
 		//	glRotatef(rotateUpperArmJointY, 0.0f, 1.0f, 0.0f);
 		//	glRotatef(rotateUpperArmJointZ, 0.0f, 0.0f, 1.0f);
@@ -1900,15 +2171,14 @@ void display()
 
 		// 4 Arms
 		GLfloat shoulderHeight = 0.325f / 2; // 0.325f
-		GLfloat shieldDepth = 0.25f;
+		GLfloat armorDepth = 0.25f;
 		GLfloat armLength = 0.65f;
-		GLfloat wristJointRadius = 0.0175f;
 		//	Right Front
 		glPushMatrix();
 		{
 			glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
 			glTranslatef(0.325f + 0.325 / 4, 0.0f, -0.325f / 4);
-			drawCompleteArms(shoulderHeight, shieldDepth, armLength, wristJointRadius, true);
+			drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, true);
 		}
 		glPopMatrix();
 
@@ -1917,7 +2187,7 @@ void display()
 		{
 			glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
 			glTranslatef(0.325f + 0.325 / 4, 0.0f, 0.325f / 4);
-			drawCompleteArms(shoulderHeight, shieldDepth, armLength, wristJointRadius, true);
+			drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, true);
 		}
 		glPopMatrix();
 
@@ -1926,7 +2196,7 @@ void display()
 		{
 			glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
 			glTranslatef(-0.325f - 0.325 / 4, 0.0f, -0.325f / 4);
-			drawCompleteArms(shoulderHeight, shieldDepth, armLength, wristJointRadius, false);
+			drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, false);
 		}
 		glPopMatrix();
 
@@ -1935,7 +2205,7 @@ void display()
 		{
 			glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
 			glTranslatef(-0.325f - 0.325 / 4, 0.0f, 0.325f / 4);
-			drawCompleteArms(shoulderHeight, shieldDepth, armLength, wristJointRadius, false);
+			drawCompleteArms(shoulderHeight, armorDepth, armLength, wristJointRadius, false);
 		}
 		glPopMatrix();
 
