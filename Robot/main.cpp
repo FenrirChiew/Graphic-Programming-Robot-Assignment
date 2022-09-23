@@ -42,10 +42,22 @@ GLint tubeSlices = 20;
 GLint tubeStacks = 20;
 GLint kunaiSlices = 10;
 GLint kunaiStacks = 10;
-boolean isGrab = false;
 GLfloat rotateFinger = 90.0f;
 GLfloat rotateTumb = -45.0f;
 GLfloat rotateWheel = 0.0f;
+boolean onHand = false;
+boolean firstHand = true;
+GLfloat handSpeed = 0.0f;
+GLfloat handSize = 1.0f;
+GLfloat rotatePlamX = 0.0f;
+GLfloat rotatePlamY = 0.0f;
+GLfloat rotatePlamZ = 0.0f;
+GLfloat rotateHandX = 0.0f;
+GLfloat rotateHandY = 0.0f;
+GLfloat rotateHandZ = 0.0f;
+GLfloat punchSpeed = 0.0f;
+boolean punchReturn = false;
+boolean armReturn = false;
 GLfloat rotateShoulderJointX = 0.0f;
 GLfloat rotateShoulderJointY = 0.0f;
 GLfloat rotateShoulderJointZ = -5.0f;
@@ -66,19 +78,13 @@ GLfloat armorSize = 1.0f;
 boolean onRest = true;
 boolean firstRest = true;
 GLfloat restSpeed = 0.0f;
-boolean onHand = false;
-boolean firstHand = true;
-GLfloat handSpeed = 0.0f;
-GLfloat handSize = 1.0f;
-GLfloat rotatePlamX = 0.0f;
-GLfloat rotatePlamY = 0.0f;
-GLfloat rotatePlamZ = 0.0f;
-GLfloat rotateHandX = 0.0f;
-GLfloat rotateHandY = 0.0f;
-GLfloat rotateHandZ = 0.0f;
-GLfloat punchSpeed = 0.0f;
-boolean punchReturn = false;
-boolean punchFlip = false;
+boolean onGun = false;
+boolean firstGun = false;
+GLfloat gunSize = 1.0f;
+GLfloat magazineSpeed = 0.0f;
+boolean isTriggered = false;
+GLint triggerCount = 0;
+GLfloat bulletSpeeds[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 // Rotate Attributes
 GLfloat objectRotateX = 0.0f;
@@ -167,9 +173,23 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Finger
 			rotateFinger = 90.0f;
 			rotateTumb = -45.0f;
+			// Hand
+			onHand = false;
+			firstHand = true;
+			handSpeed = 0.0f;
+			handSize = 1.0f;
+			rotatePlamX = 0.0f;
+			rotatePlamY = 0.0f;
+			rotatePlamZ = 0.0f;
+			rotateHandX = 0.0f;
+			rotateHandY = 0.0f;
+			rotateHandZ = 0.0f;
+			punchSpeed = 0.0f;
+			punchReturn = false;
 			// Wheel
 			rotateWheel = 0.0f;
 			// Shoulder
+			armReturn = false;
 			rotateShoulderJointX = 0.0f;
 			rotateShoulderJointY = 0.0f;
 			rotateShoulderJointZ = -5.0f;
@@ -194,20 +214,17 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			onRest = true;
 			firstRest = true;
 			restSpeed = 0.0f;
-			// Hand
-			onHand = false;
-			firstHand = true;
-			handSpeed = 0.0f;
-			handSize = 1.0f;
-			rotatePlamX = 0.0f;
-			rotatePlamY = 0.0f;
-			rotatePlamZ = 0.0f;
-			rotateHandX = 0.0f;
-			rotateHandY = 0.0f;
-			rotateHandZ = 0.0f;
-			punchSpeed = 0.0f;
-			punchReturn = false;
-			punchFlip = false;
+			// Gun
+			onGun = false;
+			firstGun = false;
+			gunSize = 1.0f;
+			magazineSpeed = 0.0f;
+			isTriggered = false;
+			triggerCount = 0;
+			bulletSpeeds[0] = 0.0f;
+			bulletSpeeds[1] = 0.0f;
+			bulletSpeeds[2] = 0.0f;
+			bulletSpeeds[3] = 0.0f;
 			// lightX
 			positionLight0[0] = 0.0f;
 			// lightY
@@ -465,9 +482,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			{
 				if (!punchReturn)
 				{
-					if (punchSpeed < 0.25f)
+					if (punchSpeed < 0.5f)
 					{
-						punchSpeed += 0.01 * speed * elapsedSeconds;
+						punchSpeed += 0.05 * speed * elapsedSeconds;
 					}
 					else
 					{
@@ -476,9 +493,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				}
 				else
 				{
-					if (punchSpeed > -0.25f)
+					if (punchSpeed > -0.5f)
 					{
-						punchSpeed -= 0.01 * speed * elapsedSeconds;
+						punchSpeed -= 0.05 * speed * elapsedSeconds;
 					}
 					else
 					{
@@ -491,150 +508,194 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 			if (wParam == 'W')
 			{
-				if (rotateShoulderJointX < 5.0f)
+				if (!armReturn)
 				{
-					rotateShoulderJointX += speed * elapsedSeconds;
+					if (rotateShoulderJointX < 10.0f)
+					{
+						rotateShoulderJointX += 0.5 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointX < 10.0f)
+					{
+						rotateUpperArmJointX += 0.5 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointX > 10.0f && rotateUpperArmJointX > 10.0f)
+					{
+						armReturn = true;
+					}
 				}
-				if (rotateUpperArmJointX < 5.0f)
+				else
 				{
-					rotateUpperArmJointX += speed * elapsedSeconds;
+					if (rotateShoulderJointX > -10.0f)
+					{
+						rotateShoulderJointX -= 0.5 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointX > -10.0f)
+					{
+						rotateUpperArmJointX -= 0.5 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointX < -10.0f && rotateUpperArmJointX < -10.0f)
+					{
+						armReturn = false;
+					}
 				}
 			}
 			else if (wParam == 'S')
 			{
-				if (rotateShoulderJointX > -5.0f)
+				if (!armReturn)
 				{
-					rotateShoulderJointX -= speed * elapsedSeconds;
+					if (rotateShoulderJointX > -10.0f)
+					{
+						rotateShoulderJointX -= 0.5 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointX > -10.0f)
+					{
+						rotateUpperArmJointX -= 0.5 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointX < -10.0f && rotateUpperArmJointX < -10.0f)
+					{
+						armReturn = true;
+					}
 				}
-				if (rotateUpperArmJointX > -5.0f)
+				else
 				{
-					rotateUpperArmJointX -= speed * elapsedSeconds;
+					if (rotateShoulderJointX < 10.0f)
+					{
+						rotateShoulderJointX += 0.5 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointX < 10.0f)
+					{
+						rotateUpperArmJointX += 0.5 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointX > 10.0f && rotateUpperArmJointX > 10.0f)
+					{
+						armReturn = false;
+					}
 				}
 			}
 			else if (wParam == 'A')
 			{
-				if (rotateShoulderJointZ < 5.0f)
+				if (rotateShoulderJointZ < 10.0f)
 				{
 					rotateShoulderJointZ += speed * elapsedSeconds;
 				}
-				if (rotateUpperArmJointY < 5.0f)
+				if (rotateUpperArmJointY < 10.0f)
 				{
 					rotateUpperArmJointY += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'D')
 			{
-				if (rotateShoulderJointZ > -5.0f)
+				if (rotateShoulderJointZ > -10.0f)
 				{
 					rotateShoulderJointZ -= speed * elapsedSeconds;
 				}
-				if (rotateUpperArmJointY > -5.0f)
+				if (rotateUpperArmJointY > -10.0f)
 				{
 					rotateUpperArmJointY -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'E')
 			{
-				if (rotateShoulderJointY < 5.0f)
+				if (rotateShoulderJointY < 10.0f)
 				{
 					rotateShoulderJointY += speed * elapsedSeconds;
 				}
-				if (rotateUpperArmJointZ > 5.0f)
+				if (rotateUpperArmJointZ > 10.0f)
 				{
 					rotateUpperArmJointZ -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'Q')
 			{
-				if (rotateShoulderJointY > -5.0f)
+				if (rotateShoulderJointY > -10.0f)
 				{
 					rotateShoulderJointY -= speed * elapsedSeconds;
 				}
-				if (rotateUpperArmJointZ < -5.0f)
+				if (rotateUpperArmJointZ < -10.0f)
 				{
 					rotateUpperArmJointZ += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'H')
 			{
-				if (rotateElbowJointX < 45.0f)
+				if (rotateElbowJointX < 25.0f)
 				{
 					rotateElbowJointX += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'F')
 			{
-				if (rotateElbowJointX > -0.0f)
+				if (rotateElbowJointX > 0.0f)
 				{
 					rotateElbowJointX -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'T')
 			{
-				if (rotateElbowJointY < 45.0f)
+				if (rotateElbowJointY < 25.0f)
 				{
 					rotateElbowJointY += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'G')
 			{
-				if (rotateElbowJointY > -45.0f)
+				if (rotateElbowJointY > -25.0f)
 				{
 					rotateElbowJointY -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'Y')
 			{
-				if (rotateElbowJointZ < 5.0f)
+				if (rotateElbowJointZ < 10.0f)
 				{
 					rotateElbowJointZ += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'R')
 			{
-				if (rotateElbowJointZ > -5.0f)
+				if (rotateElbowJointZ > -10.0f)
 				{
 					rotateElbowJointZ -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'I')
 			{
-				if (rotateWristJointX < 5.0f)
+				if (rotateWristJointX < 10.0f)
 				{
 					rotateWristJointX += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'K')
 			{
-				if (rotateWristJointX > -5.0f)
+				if (rotateWristJointX > -10.0f)
 				{
 					rotateWristJointX -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'J')
 			{
-				if (rotateWristJointY < 5.0f)
+				if (rotateWristJointY < 10.0f)
 				{
 					rotateWristJointY += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'L')
 			{
-				if (rotateWristJointY > -5.0f)
+				if (rotateWristJointY > -10.0f)
 				{
 					rotateWristJointY -= speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'O')
 			{
-				if (rotateWristJointZ < 5.0f)
+				if (rotateWristJointZ < 10.0f)
 				{
 					rotateWristJointZ += speed * elapsedSeconds;
 				}
 			}
 			else if (wParam == 'U')
 			{
-				if (rotateWristJointZ > -5.0f)
+				if (rotateWristJointZ > -10.0f)
 				{
 					rotateWristJointZ -= speed * elapsedSeconds;
 				}
@@ -653,11 +714,61 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			else if (wParam == 'H')
 			{
 				onHand = !onHand;
+				// Finger
+				rotateFinger = 90.0f;
+				rotateTumb = -45.0f;
+				// Hand
+				handSpeed = 0.0f;
+				rotatePlamX = 0.0f;
+				rotatePlamY = 0.0f;
+				rotatePlamZ = 0.0f;
+				rotateHandX = 0.0f;
+				rotateHandY = 0.0f;
+				rotateHandZ = 0.0f;
+				punchSpeed = 0.0f;
+				punchReturn = false;
+			}
+			else if (wParam == 'G')
+			{
+				onGun = !onGun;
 			}
 		}
 		if (mode == 7)
 		{
+			if (wParam == 'X')
+			{
+				if (magazineSpeed < 360.0f)
+				{
+					magazineSpeed += speed;
 
+					if (magazineSpeed == 45.0f)
+					{
+						isTriggered = true;
+					}
+					else if (magazineSpeed == 135.0f)
+					{
+						isTriggered = true;
+					}
+					else if (magazineSpeed == 225.0f)
+					{
+						isTriggered = true;
+					}
+					else if (magazineSpeed == 315.0f)
+					{
+						isTriggered = true;
+					}
+					else
+					{
+						isTriggered = false;
+					}
+				}
+				else
+				{
+					magazineSpeed = 0.0f;
+					isTriggered = false;
+					triggerCount = 0;
+				}
+			}
 		}
 		if (mode != 0)
 		{
@@ -1003,7 +1114,7 @@ void drawEyeFrame(GLfloat eyeRadius, GLfloat starOuterRadius, GLfloat starInnerR
 	{
 		glTranslatef(0.0f, 0.0f, eyeRadius / 2);
 		glColor3f(1.0f, 1.0f, 0.0f);
-		gluSphere(quad, eyeRadius, 20, 20);
+		gluSphere(quad, eyeRadius, tubeSlices, tubeStacks);
 	}
 	glPopMatrix();
 	glPushMatrix();
@@ -1099,7 +1210,6 @@ void drawStandFoot(GLfloat standFootHeight, GLfloat maxStandFootWidth)
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
 		}
 		glEnd();
-
 	}
 	glPopMatrix();
 }
@@ -1107,7 +1217,6 @@ void drawStandFoot(GLfloat standFootHeight, GLfloat maxStandFootWidth)
 void drawStand(GLfloat standHeight)
 {
 	GLfloat standWidth = standHeight / 2;
-	GLfloat pipeHeight = standHeight * 2 / 3;
 	GLfloat standFootHeight = standHeight / 3;
 
 	glBegin(GL_QUADS);
@@ -1273,13 +1382,13 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean isTumb, boolean isRight)
 {
 	// Finger: S1=C1=S2=C2=S3
-	// S1, S2, S3 = shepere joints
+	// S1, S2, S3 = sphere joints
 	// C1 + C2 = cylinder finger
+	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
 	GLfloat part1Length = totalLength * 3 / 5;
 	GLfloat part2Length = totalLength * 2 / 5;
 	GLfloat centerRadius = (baseRadius + topRadius) / 2;
-	GLUquadricObj* quad = gluNewQuadric();
-	gluQuadricDrawStyle(quad, GLU_FILL);
 
 	glPushMatrix();
 	{
@@ -1343,10 +1452,10 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 
 void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolean isRight)
 {
-	GLfloat leftBasedRadius;
-	GLfloat rightBasedRadius;
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
+	GLfloat leftBasedRadius;
+	GLfloat rightBasedRadius;
 
 	glPushMatrix();
 	{
@@ -1702,14 +1811,10 @@ void drawWheel(GLfloat radius, GLfloat height)
 			gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
 			glColor3f(1, 0.9, 0);
 			gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
-			//glColor3f(1, 1, 1);
-			//gluQuadricDrawStyle(quad, GLU_LINE);
-			//gluCylinder(quad, radius + 0.005, radius + 0.005, height + 0.005, tubeSlices, tubeStacks);
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, height);
 				glColor3f(1, 0.8, 0.5);
-				//gluQuadricDrawStyle(quad, GLU_FILL);
 				gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
 			}
 			glPopMatrix();
@@ -1771,22 +1876,386 @@ void drawNail(GLfloat radius, GLfloat height)
 
 void drawGun()
 {
+	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
+	GLfloat mainRadius = 0.325f;
+	GLfloat gunLength = mainRadius * 3 / 8;
+	GLfloat gunHeight = gunLength / 3;
+
+	glPushMatrix();
+	{
+		glScalef(5.0f, 5.0f, 5.0f);
+		// Top Front Barrel
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, -gunLength * 5 / 8);
+			glColor3f(0, 0, 0);
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength * 7 / 8, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// Middle Top Front Barrel Disk
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, -gunLength * 3 / 8);
+			glColor3f(1, 1, 1);
+			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// Back Top Front Barrel Disk
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, gunLength / 4);
+			glColor3f(1, 1, 1);
+			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// Bottom Front Barrel
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, -gunHeight / 4, -gunLength / 4);
+			glColor3f(0, 0, 0);
+			gluCylinder(quad, gunHeight / 8, gunHeight / 8, gunLength / 2, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// Middle Bottom Front Barrel Disk
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, -gunHeight / 4, -gunLength * 3 / 16);
+			glColor3f(1, 1, 1);
+			gluDisk(quad, 0.0f, gunHeight / 8, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// Back Bottom Front Barrel Disk
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, -gunHeight / 4, gunLength / 4);
+			glColor3f(1, 1, 1);
+			gluDisk(quad, 0.0f, gunHeight / 8, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// Outer Trigger
+		glPushMatrix();
+		{
+			glTranslatef(-gunHeight / 4, -gunHeight / 4, gunLength / 8);
+			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+			glColor3f(0, 0, 0);
+			gluCylinder(quad, gunLength / 8, gunLength / 8, gunHeight / 2, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// Inner Trigger
+		glPushMatrix();
+		{
+			glTranslatef(-gunHeight / 4, -gunHeight / 4 + 0.0015f, gunLength / 8);
+			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+			glColor3f(1, 1, 1);
+			gluCylinder(quad, gunLength / 8 - 0.0015, gunLength / 8 - 0.0015, gunHeight / 2, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// Right Trigger Disk
+		glPushMatrix();
+		{
+			glTranslatef(-gunHeight / 4, -gunHeight / 4, gunLength / 8);
+			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+			glColor3f(0, 1, 0);
+			gluPartialDisk(quad, gunLength / 8 - 0.0015, gunLength / 8, tubeSlices, tubeStacks, 90.0f, 270.0f);
+		}
+		glPopMatrix();
+
+		// Left Trigger Disk
+		glPushMatrix();
+		{
+			glTranslatef(gunHeight / 4, -gunHeight / 4, gunLength / 8);
+			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+			glColor3f(0, 0, 1);
+			gluPartialDisk(quad, gunLength / 8 - 0.0015, gunLength / 8, tubeSlices, tubeStacks, 90.0f, 270.0f);
+		}
+		glPopMatrix();
+
+		// Handle
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, -gunHeight * 7 / 16, gunHeight * 7 / 16 + gunLength / 32);
+			glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+			glTranslatef(0.0f, 0.0f, -gunHeight * 7 / 16);
+			glColor3f(0, 0, 1);
+			gluCylinder(quad, gunLength / 16, gunLength / 16, gunHeight * 7 / 8, tubeSlices, tubeStacks);
+			glColor3f(1, 1, 1);
+			glTranslatef(0.0f, 0.0f, gunHeight * 7 / 8);
+			gluSphere(quad, gunLength / 16, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		// mode == 7 triggered
+		glRotatef(magazineSpeed, 0.0f, 0.0f, 1.0f);
+		// Top Right Magazine
+		glPushMatrix();
+		{
+			glTranslatef(gunHeight / 8, gunHeight / 8, 0.0f);
+			// Top Right Magazine Bullet
+			glPushMatrix();
+			{
+				if (triggerCount >= 1)
+				{
+					bulletSpeeds[0] += 0.001f;
+					glTranslatef(0.0f, 0.0f, -bulletSpeeds[0]);
+					glTranslatef(-gunHeight / 8, -gunHeight / 8, 0.0f);
+				}
+				else
+				{
+					glTranslatef(0.0f, 0.0f, bulletSpeeds[0]);
+					bulletSpeeds[0] = 0.0f;
+				}
+
+				if (isTriggered && triggerCount == 0)
+				{
+					triggerCount = 1;
+					isTriggered = false;
+				}
+
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, -gunLength / 10 + gunHeight / 5);
+					glColor3f(1, 1, 1);
+					gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
+					glColor3f(0, 0, 0);
+					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, gunLength / 10);
+					glColor3f(1, 0, 0);
+					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+
+			glTranslatef(0.0f, 0.0f, -gunLength / 8);
+			glColor3f(1, 0, 0);
+			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			glColor3f(1, 1, 0);
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, gunLength / 4);
+				glColor3f(1, 0, 0);
+				gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+
+		// Bottom Right Magazine
+		glPushMatrix();
+		{
+			glTranslatef(gunHeight / 8, -gunHeight / 8, 0.0f);
+			// Bottom Right Magazine Bullet
+			glPushMatrix();
+			{
+				if (triggerCount >= 2)
+				{
+					bulletSpeeds[1] += 0.001f;
+					glTranslatef(0.0f, 0.0f, -bulletSpeeds[1]);
+					glTranslatef(-gunHeight / 8, gunHeight / 8, 0.0f);
+				}
+				else
+				{
+					glTranslatef(0.0f, 0.0f, bulletSpeeds[1]);
+					bulletSpeeds[1] = 0.0f;
+				}
+
+				if (isTriggered && triggerCount == 1)
+				{
+					triggerCount = 2;
+					isTriggered = false;
+				}
+
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, -gunLength / 10 + gunHeight / 5);
+					glColor3f(1, 1, 1);
+					gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
+					glColor3f(0, 0, 0);
+					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, gunLength / 10);
+					glColor3f(1, 0, 0);
+					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+
+			glTranslatef(0.0f, 0.0f, -gunLength / 8);
+			glColor3f(1, 0, 0);
+			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			glColor3f(1, 1, 0);
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, gunLength / 4);
+				glColor3f(1, 0, 0);
+				gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+
+		// Bottom Left Magazine
+		glPushMatrix();
+		{
+			glTranslatef(-gunHeight / 8, -gunHeight / 8, 0.0f);
+			// Bottom Left Magazine Bullet
+			glPushMatrix();
+			{
+				if (triggerCount >= 3)
+				{
+					bulletSpeeds[2] += 0.001f;
+					glTranslatef(0.0f, 0.0f, -bulletSpeeds[2]);
+					glTranslatef(gunHeight / 8, gunHeight / 8, 0.0f);
+				}
+				else
+				{
+					glTranslatef(0.0f, 0.0f, bulletSpeeds[2]);
+					bulletSpeeds[2] = 0.0f;
+				}
+
+				if (isTriggered && triggerCount == 2)
+				{
+					triggerCount = 3;
+					isTriggered = false;
+				}
+
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, -gunLength / 10 + gunHeight / 5);
+					glColor3f(1, 1, 1);
+					gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
+					glColor3f(0, 0, 0);
+					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, gunLength / 10);
+					glColor3f(1, 0, 0);
+					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+
+			glTranslatef(0.0f, 0.0f, -gunLength / 8);
+			glColor3f(1, 0, 0);
+			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			glColor3f(1, 1, 0);
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, gunLength / 4);
+				glColor3f(1, 0, 0);
+				gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+
+		// Top Left Magazine
+		glPushMatrix();
+		{
+			glTranslatef(-gunHeight / 8, gunHeight / 8, 0.0f);
+			// Top Left Magazine Bullet
+			glPushMatrix();
+			{
+				if (triggerCount >= 4)
+				{
+					bulletSpeeds[3] += 0.001f;
+					glTranslatef(0.0f, 0.0f, -bulletSpeeds[3]);
+					glTranslatef(gunHeight / 8, -gunHeight / 8, 0.0f);
+				}
+				else
+				{
+					glTranslatef(0.0f, 0.0f, bulletSpeeds[3]);
+					bulletSpeeds[3] = 0.0f;
+				}
+
+				if (isTriggered && triggerCount == 3)
+				{
+					triggerCount = 4;
+					isTriggered = false;
+				}
+
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, -gunLength / 10 + gunHeight / 5);
+					glColor3f(1, 1, 1);
+					gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
+					glColor3f(0, 0, 0);
+					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, gunLength / 10);
+					glColor3f(1, 0, 0);
+					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+
+			glTranslatef(0.0f, 0.0f, -gunLength / 8);
+			glColor3f(1, 0, 0);
+			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			glColor3f(1, 1, 0);
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, gunLength / 4);
+				glColor3f(1, 0, 0);
+				gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+	}
+	glPopMatrix();
+
 
 }
 
-void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
+void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight)
+{
+	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
 
 	glPushMatrix();
 	{
 		if (!isRight)
 		{
-			//glTranslatef(-height * 7 / 4, 0.0f, 0.0f);
 			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 		}
-		else
+
+		glPushMatrix();
 		{
-			//glTranslatef(height * 7 / 4, 0.0f, 0.0f);
+			glTranslatef(-height * 3 / 4, -height * 1 / 6, 0.0f);
+			glColor3f(1, 1, 1);
+			gluSphere(quad, height * 3 / 10, tubeSlices, tubeStacks);
 		}
+		glPopMatrix();
+
 		glBegin(GL_QUADS);
 		{
 			// Top Face
@@ -1879,7 +2348,6 @@ void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
 
 		glPushMatrix();
 		{
-			//glTranslatef(-height / 3, -height / 7, -height / 2);
 			if (isRight)
 			{
 				glTranslatef(-height / 3, -height / 7, -height / 2);
@@ -1947,12 +2415,12 @@ void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
 void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean isRight)
 {
 	// Arm: S1=C1=S2=C2=S3=C3
-	// S1, S2, S3 = shepere joints
+	// S1, S2, S3 = sphere joints
 	// C1 + C2 = cylinder arms
-	GLfloat partLength = totalLength / 2;
-	GLfloat centerRadius = (baseRadius + topRadius) / 2;
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
+	GLfloat partLength = totalLength / 2;
+	GLfloat centerRadius = (baseRadius + topRadius) / 2;
 
 	if (!isRight)
 	{
@@ -2026,6 +2494,8 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 
 void drawCompleteArms(GLfloat shoulderHeight, GLfloat armorDepth, GLfloat armLength, GLfloat wristJointRadius, boolean isRight)
 {
+	GLfloat shouderJointRadius = shoulderHeight / 4;
+
 	// Shoulders
 	glPushMatrix();
 	{
@@ -2079,7 +2549,6 @@ void drawCompleteArms(GLfloat shoulderHeight, GLfloat armorDepth, GLfloat armLen
 		glPopMatrix();
 
 		// Arm
-		GLfloat shouderJointRadius = shoulderHeight / 4; //0.65 / 8
 		glPushMatrix();
 		{
 			if (isRight)
@@ -2239,29 +2708,61 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 			glRotatef(rotateHandX, 1.0f, 0.0f, 0.0f);
 			glRotatef(rotateHandY, 0.0f, 1.0f, 0.0f);
 			glRotatef(rotateHandZ, 0.0f, 0.0f, 1.0f);
+			//	Upper Left Hand
 			glPushMatrix();
 			{
-				glTranslatef(0.0f, 0.0f, -punchSpeed);
-				glTranslatef(mainRadius / 2, mainRadius * 2, 0.0f);
+				glTranslatef(0.0f, 0.0f, punchSpeed);
+				glTranslatef(mainRadius / 2, mainRadius * 2.5, -plamLength);
 				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
 				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
 				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
-				glTranslatef(-mainRadius / 2, -mainRadius * 2, 0.0f);
-				glTranslatef(mainRadius / 2, mainRadius * 2, 0.0f);
+				glTranslatef(-mainRadius / 2, -mainRadius * 2.5, plamLength);
+				glTranslatef(mainRadius / 2, mainRadius * 2.5, -plamLength);
 				glRotatef(90.0, 1.0, 0.0, 0.0);
 				glRotatef(180.0, 0.0, 1.0, 0.0);
 				drawPalm(wristJointRadius, fingerTipRadius, plamLength, true);
 			}
 			glPopMatrix();
+			//	Upper Right Hand
 			glPushMatrix();
 			{
-				glTranslatef(0.0f, 0.0f, punchSpeed);
-				glTranslatef(-mainRadius / 2, mainRadius * 2, 0.0f);
+				glTranslatef(0.0f, 0.0f, -punchSpeed);
+				glTranslatef(-mainRadius / 2, mainRadius * 2.5, -plamLength);
 				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
 				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
 				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
-				glTranslatef(mainRadius / 2, -mainRadius * 2, 0.0f);
-				glTranslatef(-mainRadius / 2, mainRadius * 2, 0.0f);
+				glTranslatef(mainRadius / 2, -mainRadius * 2.5, plamLength);
+				glTranslatef(-mainRadius / 2, mainRadius * 2.5, -plamLength);
+				glRotatef(90.0, 1.0, 0.0, 0.0);
+				glRotatef(180.0f, 0.0, 1.0, 0.0);
+				drawPalm(wristJointRadius, fingerTipRadius, plamLength, false);
+			}
+			glPopMatrix();
+			//	Lower Left Hand
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, -punchSpeed);
+				glTranslatef(mainRadius, mainRadius * 2, 0.0f);
+				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
+				glTranslatef(-mainRadius, -mainRadius * 2, 0.0f);
+				glTranslatef(mainRadius, mainRadius * 2, 0.0f);
+				glRotatef(90.0, 1.0, 0.0, 0.0);
+				glRotatef(180.0, 0.0, 1.0, 0.0);
+				drawPalm(wristJointRadius, fingerTipRadius, plamLength, true);
+			}
+			glPopMatrix();
+			//	Lower Right Hand
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, punchSpeed);
+				glTranslatef(-mainRadius, mainRadius * 2, 0.0f);
+				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
+				glTranslatef(mainRadius, -mainRadius * 2, 0.0f);
+				glTranslatef(-mainRadius, mainRadius * 2, 0.0f);
 				glRotatef(90.0, 1.0, 0.0, 0.0);
 				glRotatef(180.0f, 0.0, 1.0, 0.0);
 				drawPalm(wristJointRadius, fingerTipRadius, plamLength, false);
@@ -2378,7 +2879,7 @@ void display()
 		glColor3f(1, 1, 1);
 		glPushMatrix();
 		{
-			//glScalef(20, 20, 20);
+			//glScalef(15, 15, 15);
 			gluSphere(quad, 0.005, 20, 20);
 		}
 		glPopMatrix();
@@ -2388,8 +2889,8 @@ void display()
 		GLfloat wristJointRadius = 0.02625f;
 		GLfloat fingerTipRadius = 0.01875f;
 		GLfloat plamLength = 0.1275f;
-		drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, plamLength);
-
+		//drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, plamLength);
+		drawGun();
 		// Eye
 		//drawEyeTube(sqrt(pow(0.325f, 2) - pow(0.325f - 0.025f, 2)), 0.35f);
 		//drawEye(0.325f, 0.025f, 0.0f, 0.3f, 0.0f);
