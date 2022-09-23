@@ -45,6 +45,7 @@ GLint kunaiStacks = 10;
 GLfloat rotateFinger = 90.0f;
 GLfloat rotateTumb = -45.0f;
 GLfloat rotateWheel = 0.0f;
+boolean isStop = true;
 boolean onHand = false;
 boolean firstHand = true;
 GLfloat handSpeed = 0.0f;
@@ -188,6 +189,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			punchReturn = false;
 			// Wheel
 			rotateWheel = 0.0f;
+			isStop = true;
 			// Shoulder
 			armReturn = false;
 			rotateShoulderJointX = 0.0f;
@@ -710,6 +712,8 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			else if (wParam == 'R')
 			{
 				onRest = !onRest;
+				isStop = onRest;
+				rotateWheel = 0.0f;
 			}
 			else if (wParam == 'H')
 			{
@@ -731,6 +735,11 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			else if (wParam == 'G')
 			{
 				onGun = !onGun;
+			}
+			else if (wParam == 'S')
+			{
+				isStop = !isStop;
+				rotateWheel = 0.0f;
 			}
 		}
 		if (mode == 7)
@@ -772,7 +781,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		}
 		if (mode != 0)
 		{
-			rotateWheel = 0.0f;
+
 		}
 		//else if (mode == -1)
 		//{
@@ -1785,7 +1794,7 @@ void drawWheel(GLfloat radius, GLfloat height)
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
 
-	if (mode != 0)
+	if (!isStop)
 	{
 		if (rotateWheel > 360.0f)
 		{
@@ -1874,12 +1883,10 @@ void drawNail(GLfloat radius, GLfloat height)
 	glPopMatrix();
 }
 
-void drawGun()
+void drawGun(GLfloat gunLength)
 {
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
-	GLfloat mainRadius = 0.325f;
-	GLfloat gunLength = mainRadius * 3 / 8;
 	GLfloat gunHeight = gunLength / 3;
 
 	glPushMatrix();
@@ -2889,8 +2896,9 @@ void display()
 		GLfloat wristJointRadius = 0.02625f;
 		GLfloat fingerTipRadius = 0.01875f;
 		GLfloat plamLength = 0.1275f;
+		GLfloat gunLength = mainRadius * 3 / 8;
 		//drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, plamLength);
-		drawGun();
+		drawGun(gunLength);
 		// Eye
 		//drawEyeTube(sqrt(pow(0.325f, 2) - pow(0.325f - 0.025f, 2)), 0.35f);
 		//drawEye(0.325f, 0.025f, 0.0f, 0.3f, 0.0f);
