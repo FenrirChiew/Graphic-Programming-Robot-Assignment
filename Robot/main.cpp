@@ -1054,6 +1054,171 @@ void drawEyeTube(GLfloat radius, GLfloat height)
 	glPopMatrix();
 }
 
+void drawStandFoot(GLfloat standFootHeight, GLfloat maxStandFootWidth)
+{
+	GLfloat standFootDepth = standFootHeight / 4;
+
+	glPushMatrix();
+	{
+		glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
+		glBegin(GL_QUADS);
+		{
+			// Top Face
+			glColor3f(1, 0, 0);
+			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+		}
+		glEnd();
+
+		glBegin(GL_TRIANGLE_FAN);
+		{
+			// Center
+			glColor3f(1, 0, 0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, 0.0f);
+
+			// Front Face
+			glColor3f(0, 0, 0);
+			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+
+			// Right Face
+			glColor3f(1, 1, 1);
+			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+
+			// Back Face
+			glColor3f(0, 0, 0);
+			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+
+			// Left Face
+			glColor3f(1, 1, 1);
+			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+		}
+		glEnd();
+
+	}
+	glPopMatrix();
+}
+
+void drawStand(GLfloat standHeight)
+{
+	GLfloat standWidth = standHeight / 2;
+	GLfloat pipeHeight = standHeight * 2 / 3;
+	GLfloat standFootHeight = standHeight / 3;
+
+	glBegin(GL_QUADS);
+	{
+		// Top Face
+		glColor3f(1, 0, 0);
+		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
+		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
+		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
+
+		// Bottom Face
+		glColor3f(1, 0, 0);
+		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
+		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+	}
+	glEnd();
+
+	glBegin(GL_TRIANGLES);
+	{
+		// Front Face
+		glColor3f(0, 0, 0);
+		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
+
+		// Front Right Face
+		glColor3f(1, 1, 1);
+		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
+		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+
+		// Right Face
+		glColor3f(0, 0, 0);
+		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
+		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
+
+		// Back Right Face
+		glColor3f(1, 1, 1);
+		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
+		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
+
+		// Back Face
+		glColor3f(0, 0, 0);
+		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
+		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
+		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
+
+		// Back Left Face
+		glColor3f(1, 1, 1);
+		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
+		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
+		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+
+		// Left Face
+		glColor3f(0, 0, 0);
+		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
+		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+
+		// Front Left Face
+		glColor3f(1, 1, 1);
+		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+	}
+	glEnd();
+
+	// Front Right Stand Foot
+	glPushMatrix();
+	{
+		glTranslatef(-standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, -standWidth * 10 / 16);
+		glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+		drawStandFoot(standFootHeight, standWidth * 1.5);
+	}
+	glPopMatrix();
+
+	// Front Left Stand Foot
+	glPushMatrix();
+	{
+		glTranslatef(standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, -standWidth * 10 / 16);
+		glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
+		drawStandFoot(standFootHeight, standWidth * 1.5);
+	}
+	glPopMatrix();
+
+	// Back Right Stand Foot
+	glPushMatrix();
+	{
+		glTranslatef(-standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, standWidth * 10 / 16);
+		glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+		drawStandFoot(standFootHeight, standWidth * 1.5);
+	}
+	glPopMatrix();
+
+	// Back Right Stand Foot
+	glPushMatrix();
+	{
+		glTranslatef(standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, standWidth * 10 / 16);
+		glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+		drawStandFoot(standFootHeight, standWidth * 1.5);
+	}
+	glPopMatrix();
+}
+
 void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat translatey, GLfloat translatez, GLfloat degree, GLfloat rotatex, GLfloat rotatey, GLfloat rotatez, GLdouble headTrim[4])
 {
 	GLUquadricObj* quad = gluNewQuadric();
@@ -1180,6 +1345,8 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 {
 	GLfloat leftBasedRadius;
 	GLfloat rightBasedRadius;
+	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
 
 	glPushMatrix();
 	{
@@ -1196,10 +1363,29 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 		}
 
 		// Wrist
-		glColor3f(0, 1, 0);
-		glBegin(GL_QUADS);
+		if (isRight)
 		{
-			if (isRight)
+			glPushMatrix();
+			{
+				glTranslatef(-basedRadius, halfLength, 0.0f);
+				glColor3f(1, 1, 1);
+				gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
+				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+				glColor3f(0, 0, 0);
+				gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
+				gluCylinder(quad, basedRadius, basedRadius * 1.50, basedRadius * 1.25, tubeSlices, tubeStacks);
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, basedRadius * 1.25);
+					glColor3f(1, 0, 0);
+					gluDisk(quad, basedRadius * 1.25, basedRadius * 1.50, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+
+			glColor3f(0, 1, 0);
+			glBegin(GL_QUADS);
 			{
 				// Front Face
 				drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
@@ -1231,40 +1417,64 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
 				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
 			}
-			else
-			{
-				// Front Face
-				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
-				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
-
-				// Back Face
-				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
-				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
-
-				// Left Face
-				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
-				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
-
-				// Right Face
-				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
-
-				// Top Face
-				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
-				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
-				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
-			}
+			glEnd();
 		}
-		glEnd();
+		else
+		{
+			glPushMatrix();
+			{
+				glTranslatef(basedRadius, halfLength, 0.0f);
+				glColor3f(1, 1, 1);
+				gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
+				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+				glColor3f(0, 0, 0);
+				gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
+				gluCylinder(quad, basedRadius, basedRadius * 1.50, basedRadius * 1.25, tubeSlices, tubeStacks);
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, basedRadius * 1.25);
+					glColor3f(1, 0, 0);
+					gluDisk(quad, basedRadius * 1.25, basedRadius * 1.50, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glPopMatrix();
+
+			glColor3f(0, 1, 0);
+			glBegin(GL_QUADS);
+			{
+				// Front Face
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
+
+				// Back Face
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+
+				// Left Face
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+
+				// Right Face
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
+
+				// Top Face
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+			}
+			glEnd();
+		}
 
 		// Palm
 		glColor3f(1, 0, 0);
@@ -1557,6 +1767,11 @@ void drawNail(GLfloat radius, GLfloat height)
 		glPopMatrix();
 	}
 	glPopMatrix();
+}
+
+void drawGun()
+{
+
 }
 
 void drawShoulder(GLfloat height, GLfloat armorDepth, boolean isRight) {
@@ -1919,7 +2134,6 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 	GLfloat armLength = mainRadius * 2;
 	GLfloat armorDepth = shoulderHeight / 0.65f;
 
-	// Head
 	if (onRest)
 	{
 		if (firstRest)
@@ -1942,11 +2156,21 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 			restSpeed += 0.0175f;
 		}
 	}
-	glTranslatef(0.0f, restSpeed / 35 * 0.1f, 0.0f);
-	drawHead(mainRadius, trimRadius, 0.0f, 0.0f, 0.0f, headRotate, 1.0f, 0.0f, 0.0f, headTrim);
+	glPushMatrix();
+	{
+		glTranslatef(0.0f, restSpeed / 35.0 * 0.1f, 0.0f);
+		// Head
+		drawHead(mainRadius, trimRadius, 0.0f, 0.0f, 0.0f, headRotate, 1.0f, 0.0f, 0.0f, headTrim);
+
+		// Stand
+		glTranslatef(0.0f, -mainRadius * 1.5 + restSpeed / 35.0 * mainRadius * 1.5, 0.0f);
+		glScalef(1.0f - restSpeed / 35.0, 1.0f - restSpeed / 35.0, 1.0f - restSpeed / 35.0);
+		drawStand(mainRadius);
+	}
+	glPopMatrix();
 
 	// 4 Arms
-	//	Right Front
+	//	Right Front Arm
 	glPushMatrix();
 	{
 		glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
@@ -1955,7 +2179,7 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 	}
 	glPopMatrix();
 
-	//	Right Back
+	//	Right Back Arm
 	glPushMatrix();
 	{
 		glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
@@ -1964,7 +2188,7 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 	}
 	glPopMatrix();
 
-	//	Left Front
+	//	Left Front Arm
 	glPushMatrix();
 	{
 		glRotatef(-25.0f, 0.0f, 1.0f, 0.0f);
@@ -1973,7 +2197,7 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 	}
 	glPopMatrix();
 
-	//	Left Back
+	//	Left Back Arm
 	glPushMatrix();
 	{
 		glRotatef(25.0f, 0.0f, 1.0f, 0.0f);
