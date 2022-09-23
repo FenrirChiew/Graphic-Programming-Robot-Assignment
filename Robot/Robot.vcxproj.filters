@@ -53,5 +53,26 @@
     <Image Include="eye.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="leg.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="leg2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="leg3.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="legTip.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="metal3.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="metal4.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="mothEye2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

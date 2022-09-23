@@ -161,8 +161,15 @@
     <Image Include="head.bmp" />
     <Image Include="lavaStone.bmp" />
     <Image Include="lavaStone2.bmp" />
+    <Image Include="leg.bmp" />
+    <Image Include="leg2.bmp" />
+    <Image Include="leg3.bmp" />
+    <Image Include="legTip.bmp" />
     <Image Include="metal.bmp" />
     <Image Include="metal2.bmp" />
+    <Image Include="metal3.bmp" />
+    <Image Include="metal4.bmp" />
+    <Image Include="mothEye2.bmp" />
     <Image Include="nailCover.bmp" />
     <Image Include="nailMovement.bmp" />
     <Image Include="starStrip.bmp" />
