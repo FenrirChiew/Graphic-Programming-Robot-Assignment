@@ -109,6 +109,50 @@ GLuint texTexture = 0;
 LPCSTR texFile = "tex.bmp";
 BITMAP BMP;
 HBITMAP hBMP = NULL;
+boolean onTexture = true;
+int textureTheme = 1;
+
+GLuint starStripTexture = 0;
+GLuint starStrip2Texture = 0;
+GLuint headTexture = 0;
+GLuint head2Texture = 0;
+GLuint head3Texture = 0;
+GLuint eyeTexture = 0;
+GLuint eye2Texture = 0;
+GLuint eyeTubeTexture = 0;
+GLuint lavaStoneTexture = 0;
+GLuint lavaStone2Texture = 0;
+GLuint metalTexture = 0;
+GLuint metal2Texture = 0;
+GLuint legTexture = 0;
+GLuint leg2Texture = 0;
+GLuint leg3Texture = 0;
+GLuint leg4Texture = 0;
+GLuint leg5Texture = 0;
+GLuint legTipTexture = 0;
+GLuint neckTexture = 0;
+GLuint neck2Texture = 0;
+GLuint metal3Texture = 0;
+GLuint metal4Texture = 0;
+GLuint metal5Texture = 0;
+GLuint mothEyeTexture = 0;
+GLuint mothEye2Texture = 0;
+GLuint kunaiTexture = 0;
+GLuint kunai2Texture = 0;
+GLuint upperKunaiTexture = 0;
+GLuint bodyTexture = 0;
+GLuint body2Texture = 0;
+GLuint nailTexture = 0;
+GLuint nailCoverTexture = 0;
+GLuint shoulderTexture = 0;
+GLuint shoulder2Texture = 0;
+GLuint darkGreyMetalTexture = 0;
+GLuint bluePlaneTexture = 0;
+
+//Damage Texture Theme 
+GLuint damageBodyTexture = 0;
+GLuint damageLegTexture = 0;
+GLuint damageShoulderTexture = 0;
 
 LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -495,6 +539,20 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				if (wParam == VK_TAB)
 				{
 
+				}
+
+				if (wParam == 'P')
+				{
+					onTexture = !onTexture;
+				}
+
+				if (wParam == 'N')
+				{
+					textureTheme = 1;
+				}
+				else if (wParam == 'M')
+				{
+					textureTheme = 2;
 				}
 			}
 			if (mode == 4)
@@ -1159,36 +1217,54 @@ void draw4PointedStarStrip(GLfloat radius, GLfloat depth)
 {
 	glBegin(GL_QUAD_STRIP);
 	{
-		glColor3f(0, 0, 1);
+		//glColor3f(0, 0, 1);
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, radius, depth / 2);
 
-		glColor3f(0, 0, 0);
+		//glColor3f(0, 0, 0);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(-radius, 0.0f, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(-radius, 0.0f, depth / 2);
 
-		glColor3f(1, 0, 0);
+		//glColor3f(1, 0, 0);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, -radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, -radius, depth / 2);
 
-		glColor3f(0, 1, 0);
+		//glColor3f(0, 1, 0);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(radius, 0.0f, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(radius, 0.0f, depth / 2);
 
-		glColor3f(0, 0, 1);
+		//glColor3f(0, 0, 1);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, radius, depth / 2);
 	}
 	glEnd();
@@ -1201,7 +1277,17 @@ void draw4PointedStar(GLfloat outerRadius, GLfloat innerRadius, GLfloat outerDep
 	glPushMatrix();
 	{
 		glTranslatef(0.0f, 0.0f, interval);
-		draw4PointedStarStrip(outerRadius, outerDepth);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			if (textureTheme == 1)
+			{
+				glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
+			}
+			draw4PointedStarStrip(outerRadius, outerDepth);
+		}
 	}
 	glPopMatrix();
 	draw4PointedStarStrip(innerRadius, innerDepth);
@@ -1246,22 +1332,32 @@ void drawKunaiStrip(GLfloat radius, GLfloat depth)
 {
 	glBegin(GL_QUAD_STRIP);
 	{
-		glColor3f(1, 1, 1);
+		//glColor3f(1, 1, 1);
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, radius, depth / 2);
 
-		glColor3f(0, 0, 0);
+		//glColor3f(0, 0, 0);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, -radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, -radius, depth / 2);
 
-		glColor3f(1, 1, 1);
+		//glColor3f(1, 1, 1);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, radius, depth / 2);
 	}
 	glEnd();
@@ -1277,38 +1373,83 @@ void drawKunai(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GLfl
 	{
 		glTranslatef(0.0f, innerRadius + gripLength, 0.0f);
 		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-		glColor3f(0, 0, 0);
-		gluCylinder(quad, gripRadius, gripRadius, gripLength, kunaiSlices, kunaiStacks);
+		//glColor3f(0, 0, 0);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluCylinder(quad, gripRadius, gripRadius, gripLength, kunaiSlices, kunaiStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 	glPushMatrix();
 	{
 		glTranslatef(0.0f, 0.0f, interval);
-		drawKunaiStrip(outerRadius, outerDepth);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
+			drawKunaiStrip(outerRadius, outerDepth);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
-	drawKunaiStrip(innerRadius, innerDepth);
-	glBegin(GL_QUAD_STRIP);
+	if (onTexture)
 	{
-		glColor3f(1, 1, 1);
-		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
-
-		glColor3f(0, 0, 0);
-		drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
-
-		drawNormalizedVertex(0.0f, -outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, -innerRadius, -innerDepth / 2);
-
-		glColor3f(1, 1, 1);
-		drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
-
-		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glEnd();
+	{
+		glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
+		drawKunaiStrip(innerRadius, innerDepth);
+	}
+	glDisable(GL_TEXTURE_2D);
+
+	if (onTexture)
+	{
+		glEnable(GL_TEXTURE_2D);
+	}
+	{
+		glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
+
+		glBegin(GL_QUAD_STRIP);
+		{
+			//glColor3f(1, 1, 1);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
+
+			//glColor3f(0, 0, 0);
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, -outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, -innerRadius, -innerDepth / 2);
+
+			//glColor3f(1, 1, 1);
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
+		}
+		glEnd();
+	}
+	glDisable(GL_TEXTURE_2D);
 }
 
 void draw4Kunais(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GLfloat innerRadius, GLfloat outerDepth, GLfloat innerDepth, GLfloat intervalx, GLfloat intervaly)
@@ -1350,9 +1491,18 @@ void drawEyeFrame(GLfloat eyeRadius, GLfloat starOuterRadius, GLfloat starInnerR
 
 	glPushMatrix();
 	{
-		glTranslatef(0.0f, 0.0f, eyeRadius / 2);
-		glColor3f(1.0f, 1.0f, 0.0f);
-		gluSphere(quad, eyeRadius, tubeSlices, tubeStacks);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glTranslatef(0.0f, 0.0f, eyeRadius / 2);
+			//glColor3f(1.0f, 1.0f, 0.0f);
+			glBindTexture(GL_TEXTURE_2D, eye2Texture);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluSphere(quad, eyeRadius, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 	glPushMatrix();
@@ -1374,31 +1524,73 @@ void drawEyeTube(GLfloat radius, GLfloat height)
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
 
-	glColor3f(0, 0, 0);
-	gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
-	glPushMatrix();
+	//glColor3f(0, 0, 0);
+	if (onTexture)
 	{
-		glTranslatef(0.0f, 0.0f, height);
-		gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glPopMatrix();
-	glColor3f(0, 0, 0);
-	glPushMatrix();
 	{
-		glTranslatef(0.0f, 0.0f, height);	// height / 10.25
-		gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		glBindTexture(GL_TEXTURE_2D, head3Texture);
+		gluQuadricTexture(quad, GL_TRUE);
+		gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, height);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 	}
-	glPopMatrix();
-	glColor3f(0, 0, 1);
-	gluDisk(quad, radius * 3 / 4, radius, tubeSlices, tubeStacks);
-	drawEyeFrame(0.05f, 0.2f, 0.15f, 0.01f, 0.015f, 0.01f, 0.05f, 0.065f, 0.045f, 0.01f, 0.015f, 0.125f, 0.125f);
-	glColor3f(0, 1, 1);
+	glDisable(GL_TEXTURE_2D);
+
+	//glColor3f(0, 0, 0);
+	if (onTexture)
+	{
+		glEnable(GL_TEXTURE_2D);
+	}
+	{
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, height);	// height / 10.25
+			glBindTexture(GL_TEXTURE_2D, head3Texture);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+	}
+	glDisable(GL_TEXTURE_2D);
+
+	if (onTexture)
+	{
+		glEnable(GL_TEXTURE_2D);
+	}
+	{
+		//glColor3f(0, 0, 1);
+		glBindTexture(GL_TEXTURE_2D, head3Texture);
+		gluQuadricTexture(quad, GL_TRUE);
+		gluDisk(quad, radius * 3 / 4, radius, tubeSlices, tubeStacks);
+		gluQuadricTexture(quad, GL_TRUE);
+		drawEyeFrame(0.05f, 0.2f, 0.15f, 0.01f, 0.015f, 0.01f, 0.05f, 0.065f, 0.045f, 0.01f, 0.015f, 0.125f, 0.125f);
+	}
+	glDisable(GL_TEXTURE_2D);
+	
+	//glColor3f(0, 1, 1);
 	glPushMatrix();
 	{
-		glTranslatef(0.0f, 0.0f, height / 6);
-		gluCylinder(quad, radius + 0.01, radius + 0.01, height * 5 / 6, tubeSlices, tubeStacks);
-		glColor3f(0, 0, 1);
-		gluDisk(quad, radius, radius + 0.01, tubeSlices, tubeStacks);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glTranslatef(0.0f, 0.0f, height / 6);
+			glBindTexture(GL_TEXTURE_2D, darkGreyMetalTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluCylinder(quad, radius + 0.01, radius + 0.01, height * 5 / 6, tubeSlices, tubeStacks);
+			//glColor3f(0, 0, 1);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluDisk(quad, radius, radius + 0.01, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 }
@@ -1413,7 +1605,7 @@ void drawStandFoot(GLfloat standFootHeight, GLfloat maxStandFootWidth)
 		glBegin(GL_QUADS);
 		{
 			// Top Face
-			glColor3f(1, 0, 0);
+			//glColor3f(1, 0, 0);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
@@ -1424,26 +1616,26 @@ void drawStandFoot(GLfloat standFootHeight, GLfloat maxStandFootWidth)
 		glBegin(GL_TRIANGLE_FAN);
 		{
 			// Center
-			glColor3f(1, 0, 0);
+			//glColor3f(1, 0, 0);
 			drawNormalizedVertex(0.0f, -standFootHeight / 2, 0.0f);
 
 			// Front Face
-			glColor3f(0, 0, 0);
+			//glColor3f(0, 0, 0);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
 
 			// Right Face
-			glColor3f(1, 1, 1);
+			//glColor3f(1, 1, 1);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
 
 			// Back Face
-			glColor3f(0, 0, 0);
+			//glColor3f(0, 0, 0);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
 
 			// Left Face
-			glColor3f(1, 1, 1);
+			//glColor3f(1, 1, 1);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
 		}
@@ -1460,14 +1652,14 @@ void drawStand(GLfloat standHeight)
 	glBegin(GL_QUADS);
 	{
 		// Top Face
-		glColor3f(1, 0, 0);
+		//glColor3f(1, 0, 0);
 		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
 		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
 		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
 		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
 
 		// Bottom Face
-		glColor3f(1, 0, 0);
+		//glColor3f(1, 0, 0);
 		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
 		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
 		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
@@ -1478,49 +1670,49 @@ void drawStand(GLfloat standHeight)
 	glBegin(GL_TRIANGLES);
 	{
 		// Front Face
-		glColor3f(0, 0, 0);
+		//glColor3f(0, 0, 0);
 		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
 		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
 		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
 
 		// Front Right Face
-		glColor3f(1, 1, 1);
+		//glColor3f(1, 1, 1);
 		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
 		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
 		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
 
 		// Right Face
-		glColor3f(0, 0, 0);
+		//glColor3f(0, 0, 0);
 		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
 		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
 		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
 
 		// Back Right Face
-		glColor3f(1, 1, 1);
+		//glColor3f(1, 1, 1);
 		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
 		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
 		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
 
 		// Back Face
-		glColor3f(0, 0, 0);
+		//glColor3f(0, 0, 0);
 		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
 		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
 		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
 
 		// Back Left Face
-		glColor3f(1, 1, 1);
+		//glColor3f(1, 1, 1);
 		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
 		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
 		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
 
 		// Left Face
-		glColor3f(0, 0, 0);
+		//glColor3f(0, 0, 0);
 		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
 		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
 		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
 
 		// Front Left Face
-		glColor3f(1, 1, 1);
+		//glColor3f(1, 1, 1);
 		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
 		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
 		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
@@ -1597,8 +1789,25 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 					//glColor3f(1.0f, 0.0f, 0.0f);
 					//gluSphere(quad, radius + 0.005, headSlices, headStacks);
 					//gluQuadricDrawStyle(quad, GLU_FILL);
-					glColor3f(1.0f, 1.0f, 1.0f);
-					gluSphere(quad, radius, headSlices, headStacks);
+					//glColor3f(1.0f, 1.0f, 1.0f);
+
+					if (onTexture)
+					{
+						glEnable(GL_TEXTURE_2D);
+					}
+					{
+						if (textureTheme == 1)
+						{
+							glBindTexture(GL_TEXTURE_2D, body2Texture);
+						}
+						else if (textureTheme == 2)
+						{
+							glBindTexture(GL_TEXTURE_2D, damageBodyTexture);
+						}
+						gluQuadricTexture(quad, GL_TRUE);
+						gluSphere(quad, radius, headSlices, headStacks);
+					}
+					glDisable(GL_TEXTURE_2D);
 				}
 				glDisable(GL_CLIP_PLANE0);
 			}
@@ -1654,7 +1863,7 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 					glRotatef(-rotateTumb, 0.0f, 1.0f, 0.0f);
 				}
 			}
-			glColor3f(1, 1, 1);
+			//glColor3f(1, 1, 1);
 			gluSphere(quad, baseRadius, tubeSlices, tubeStacks);
 			glPushMatrix();
 			{
@@ -1662,10 +1871,10 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 				// mode == 4 triggered
 				glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
 				glTranslatef(0.0f, 0.0f, -part1Length);
-				glColor3f(0, 0, 0);
+				//glColor3f(0, 0, 0);
 				gluCylinder(quad, centerRadius, baseRadius, part1Length, tubeSlices, tubeStacks);
 				// S2
-				glColor3f(1, 1, 1);
+				//glColor3f(1, 1, 1);
 				gluSphere(quad, centerRadius, tubeSlices, tubeStacks);
 				glPushMatrix();
 				{
@@ -1673,10 +1882,10 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 					// mode == 4 triggered
 					glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
 					glTranslatef(0.0f, 0.0f, -part2Length);
-					glColor3f(0, 0, 0);
+					//glColor3f(0, 0, 0);
 					gluCylinder(quad, topRadius, centerRadius, part2Length, tubeSlices, tubeStacks);
 					// S3
-					glColor3f(1, 1, 1);
+					//glColor3f(1, 1, 1);
 					gluSphere(quad, topRadius, tubeSlices, tubeStacks);
 				}
 				glPopMatrix();
@@ -1715,23 +1924,23 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 			glPushMatrix();
 			{
 				glTranslatef(-basedRadius, halfLength, 0.0f);
-				glColor3f(1, 1, 1);
+				//glColor3f(1, 1, 1);
 				gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
 				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-				glColor3f(0, 0, 0);
+				//glColor3f(0, 0, 0);
 				gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
 				gluCylinder(quad, basedRadius, basedRadius * 1.50, basedRadius * 1.25, tubeSlices, tubeStacks);
 				glPushMatrix();
 				{
 					glTranslatef(0.0f, 0.0f, basedRadius * 1.25);
-					glColor3f(1, 0, 0);
+					//glColor3f(1, 0, 0);
 					gluDisk(quad, basedRadius * 1.25, basedRadius * 1.50, tubeSlices, tubeStacks);
 				}
 				glPopMatrix();
 			}
 			glPopMatrix();
 
-			glColor3f(0, 1, 0);
+			//glColor3f(0, 1, 0);
 			glBegin(GL_QUADS);
 			{
 				// Front Face
@@ -1771,23 +1980,23 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 			glPushMatrix();
 			{
 				glTranslatef(basedRadius, halfLength, 0.0f);
-				glColor3f(1, 1, 1);
+				//glColor3f(1, 1, 1);
 				gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
 				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-				glColor3f(0, 0, 0);
+				//glColor3f(0, 0, 0);
 				gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
 				gluCylinder(quad, basedRadius, basedRadius * 1.50, basedRadius * 1.25, tubeSlices, tubeStacks);
 				glPushMatrix();
 				{
 					glTranslatef(0.0f, 0.0f, basedRadius * 1.25);
-					glColor3f(1, 0, 0);
+					//glColor3f(1, 0, 0);
 					gluDisk(quad, basedRadius * 1.25, basedRadius * 1.50, tubeSlices, tubeStacks);
 				}
 				glPopMatrix();
 			}
 			glPopMatrix();
 
-			glColor3f(0, 1, 0);
+			//glColor3f(0, 1, 0);
 			glBegin(GL_QUADS);
 			{
 				// Front Face
@@ -1824,7 +2033,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 		}
 
 		// Palm
-		glColor3f(1, 0, 0);
+		//glColor3f(1, 0, 0);
 		glBegin(GL_QUADS);
 		{
 			// Front Face
@@ -1919,16 +2128,24 @@ void drawArmorPlane(GLfloat radius, GLfloat bulge)
 {
 	glBegin(GL_QUADS);
 	{
-		glColor3f(1, 1, 1);
+		//glColor3f(1, 1, 1);
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(radius * cos(120 * PI / 180) * 3 / 4, radius * sin(120 * PI / 180) * 3 / 4, bulge / 2);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(radius * cos(225 * PI / 180) * 3 / 4, radius * sin(225 * PI / 180) * 3 / 4, bulge / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
 
-		glColor3f(0, 0, 0);
+		//glColor3f(0, 0, 0);
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(radius * cos(315 * PI / 180) * 3 / 4, radius * sin(315 * PI / 180) * 3 / 4, bulge / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, bulge / 2);
 	}
 	glEnd();
@@ -1941,53 +2158,102 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 
 	glPushMatrix();
 	{
-		//glScalef(5, 5, 5);
-		glTranslatef(0.0f, 0.0f, totalDepth / 2);
-		glBegin(GL_QUAD_STRIP);
+		if (onTexture)
 		{
-			glColor3f(0, 0, 1);
-			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
-			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
-
-			glColor3f(0, 0, 0);
-			drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
-			drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
-
-			glColor3f(1, 0, 0);
-			drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
-			drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
-
-			drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 5);
-			drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 10);
-
-			glColor3f(0, 1, 0);
-			drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
-			drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
-
-			glColor3f(0, 0, 1);
-			drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
-			drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
-
-			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
-			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
+			glEnable(GL_TEXTURE_2D);
 		}
-		glEnd();
+		{
+			glBindTexture(GL_TEXTURE_2D, leg5Texture);
+			//glScalef(5, 5, 5);
+			glTranslatef(0.0f, 0.0f, totalDepth / 2);
+			glBegin(GL_QUAD_STRIP);
+			{
+				//glColor3f(0, 0, 1);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
+
+				//glColor3f(0, 0, 0);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+
+				//glColor3f(1, 0, 0);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 5);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 10);
+
+				//glColor3f(0, 1, 0);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+
+				//glColor3f(0, 0, 1);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
+			}
+			glEnd();
+		}
+		glDisable(GL_TEXTURE_2D);
 
 		// Armor Faces
-		drawArmorPlane(radius, totalDepth * 1 / 5);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, leg5Texture);
+			drawArmorPlane(radius, totalDepth * 1 / 5);
+		}
+		glDisable(GL_TEXTURE_2D);
+
 		glPushMatrix();
 		{
 			glTranslatef(0.0f, 0.0f, -totalDepth * 1 / 10);
-			drawArmorPlane(radius, totalDepth * 1 / 5);
+			
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, leg5Texture);
+				drawArmorPlane(radius, totalDepth * 1 / 5);
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 
 		// Torn
-		glColor3f(1, 1, 0);
+		//glColor3f(1, 1, 0);
 		glPushMatrix();
 		{
-			glTranslatef(0.0f, -radius / 4, -totalDepth);
-			gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, bluePlaneTexture);
+				glTranslatef(0.0f, -radius / 4, -totalDepth);
+				gluQuadricTexture(quad, GL_TRUE);
+				gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 	}
@@ -2043,19 +2309,39 @@ void drawWheel(GLfloat radius, GLfloat height)
 		glRotatef(rotateWheel, 1.0f, 0.0f, 0.0f);
 		glPushMatrix();
 		{
-			glTranslatef(-height / 2, 0.0f, 0.0f);
-			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-			glColor3f(1, 0.8, 0.5);
-			gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
-			glColor3f(1, 0.9, 0);
-			gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
-			glPushMatrix();
+			if (onTexture)
 			{
-				glTranslatef(0.0f, 0.0f, height);
-				glColor3f(1, 0.8, 0.5);
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, metal5Texture);
+				glTranslatef(-height / 2, 0.0f, 0.0f);
+				glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+				//glColor3f(1, 0.8, 0.5);
+				gluQuadricTexture(quad, GL_TRUE);
 				gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
 			}
-			glPopMatrix();
+			glDisable(GL_TEXTURE_2D);
+
+			//glColor3f(1, 0.9, 0);
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, nailTexture); //reactor spin 
+				gluQuadricTexture(quad, GL_TRUE);
+				gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, height);
+					//glColor3f(1, 0.8, 0.5);
+					gluQuadricTexture(quad, GL_TRUE);
+					gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 	}
@@ -2072,24 +2358,54 @@ void drawNail(GLfloat radius, GLfloat height)
 		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 		glPushMatrix();
 		{
-			glTranslatef(0.0f, 0.0f, -height * 9 / 16);
-			glColor3f(1, 0, 0);
-			gluDisk(quad, 0.0f, radius * 0.9, tubeSlices, tubeStacks);
-			gluCylinder(quad, radius * 0.9, radius * 0.9, height / 16, tubeSlices, tubeStacks);
+
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+				glTranslatef(0.0f, 0.0f, -height * 9 / 16);
+				//glColor3f(1, 0, 0);
+				gluQuadricTexture(quad, GL_TRUE);
+				gluDisk(quad, 0.0f, radius * 0.9, tubeSlices, tubeStacks);
+				gluQuadricTexture(quad, GL_TRUE);
+				gluCylinder(quad, radius * 0.9, radius * 0.9, height / 16, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 		glPushMatrix();
 		{
-			glTranslatef(0.0f, 0.0f, -height / 2);
-			glColor3f(0, 1, 0);
-			gluDisk(quad, 0.0f, radius * 1.1, tubeSlices, tubeStacks);
-			gluCylinder(quad, radius * 1.1, radius * 1.1, height / 6, tubeSlices, tubeStacks);
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+				glTranslatef(0.0f, 0.0f, -height / 2);
+				//glColor3f(0, 1, 0);
+				gluQuadricTexture(quad, GL_TRUE);
+				gluDisk(quad, 0.0f, radius * 1.1, tubeSlices, tubeStacks);
+				gluQuadricTexture(quad, GL_TRUE);
+				gluCylinder(quad, radius * 1.1, radius * 1.1, height / 6, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 		glPushMatrix();
 		{
-			glTranslatef(0.0f, 0.0f, -height / 3);
-			gluDisk(quad, radius, radius * 1.1, tubeSlices, tubeStacks);
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+				glTranslatef(0.0f, 0.0f, -height / 3);
+				gluQuadricTexture(quad, GL_TRUE);
+				gluDisk(quad, radius, radius * 1.1, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 		glPushMatrix();
@@ -2099,8 +2415,19 @@ void drawNail(GLfloat radius, GLfloat height)
 			drawWheel(radius, height / 3);
 		}
 		glPopMatrix();
-		glColor3f(0, 0, 1);
-		gluCylinder(quad, radius / 2, radius / 2, height / 4, tubeSlices, tubeStacks);
+
+		//glColor3f(0, 0, 1);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+			gluCylinder(quad, radius / 2, radius / 2, height / 4, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
+		
 		glPushMatrix();
 		{
 			glTranslatef(0.0f, 0.0f, height * 3 / 8);
@@ -3388,6 +3715,50 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow)
 	setupLighting();
 	setupCamera();
 	//setupTextures(texFile, &texTexture);
+
+#pragma region TextureMapping
+
+	setupTextures("starStrip.bmp", &starStripTexture);
+	setupTextures("starStrip2.bmp", &starStrip2Texture);
+	setupTextures("head.bmp", &headTexture);
+	setupTextures("head2.bmp", &head2Texture);
+	setupTextures("head3.bmp", &head3Texture);
+	setupTextures("eye.bmp", &eyeTexture);
+	setupTextures("eye2.bmp", &eye2Texture);
+	setupTextures("metal.bmp", &metalTexture);
+	setupTextures("metal2.bmp", &metal2Texture);
+	setupTextures("metal4.bmp", &metal4Texture);
+	setupTextures("metal5.bmp", &metal5Texture);
+	setupTextures("lavaStone.bmp", &lavaStoneTexture);
+	setupTextures("leg.bmp", &legTexture);
+	setupTextures("leg2.bmp", &leg2Texture);
+	setupTextures("leg3.bmp", &leg3Texture);
+	setupTextures("leg4.bmp", &leg4Texture);
+	setupTextures("leg5.bmp", &leg5Texture);
+	setupTextures("legTip.bmp", &legTipTexture);
+	setupTextures("lavaStone2.bmp", &lavaStone2Texture);
+	setupTextures("neck.bmp", &neckTexture);
+	setupTextures("neck2.bmp", &neck2Texture);
+	setupTextures("mothEye.bmp", &mothEyeTexture);
+	setupTextures("mothEye2.bmp", &mothEye2Texture);
+	setupTextures("kunai.bmp", &kunaiTexture);
+	setupTextures("kunai2.bmp", &kunai2Texture);
+	setupTextures("upperKunai.bmp", &upperKunaiTexture);
+	setupTextures("body.bmp", &bodyTexture);
+	setupTextures("body2.bmp", &body2Texture);
+	setupTextures("nailMovement.bmp", &nailTexture);
+	setupTextures("nailCover.bmp", &nailCoverTexture);
+	setupTextures("shoulder.bmp", &shoulderTexture);
+	setupTextures("shoulder2.bmp", &shoulder2Texture);
+	setupTextures("darkGreyMetal.bmp", &darkGreyMetalTexture);
+	setupTextures("bluePlane.bmp", &bluePlaneTexture);
+	setupTextures("damageBody.bmp", &damageBodyTexture);
+	setupTextures("damageLeg.bmp", &damageLegTexture);
+	setupTextures("damageShoulder.bmp", &damageShoulderTexture);
+
+
+
+#pragma endregion
 
 	while (true)
 	{
