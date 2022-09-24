@@ -26,31 +26,58 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="starStrip.bmp">
+    <Image Include="bladePlane.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="bluePlane.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="body.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="body2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="bullet.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="damageBody.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="damageLeg.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="damageShoulder.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="darkGreyMetal.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="eye.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="eye2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="head.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="head2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="head3.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="kunai.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="kunai2.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="lavaStone.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="lavaStone2.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="metal.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="nailCover.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="nailMovement.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="head.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="metal2.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="eye.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="leg.bmp">
@@ -62,7 +89,19 @@
     <Image Include="leg3.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="leg4.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="leg5.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
     <Image Include="legTip.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="metal.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="metal2.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="metal3.bmp">
@@ -71,7 +110,40 @@
     <Image Include="metal4.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="metal5.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="mothEye.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
     <Image Include="mothEye2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="nailCover.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="nailMovement.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="neck.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="neck2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="shoulder.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="shoulder2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="starStrip.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="starStrip2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="upperKunai.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
