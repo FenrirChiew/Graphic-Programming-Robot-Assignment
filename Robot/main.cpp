@@ -34,13 +34,13 @@ GLfloat speed = 15.0f;
 
 // Projection Attributes
 boolean isOrtho = true;
-GLfloat r = 1.0f;
-GLfloat angle = 90.0f;
+GLfloat r = -2.5f;
+GLfloat angle = 360;
 GLfloat eyeX = r * sin(angle * 3.142 / 180.0);
 GLfloat eyeY = r;
 GLfloat eyeZ = r * cos(angle * 3.142 / 180.0);
 GLfloat lookAtX = 0.0f;
-GLfloat lookAtY = 0.0f;
+GLfloat lookAtY = -4.0f;
 GLfloat lookAtZ = 0.0f;
 GLfloat upX = 0.0f;
 GLfloat upY = 1.0f;
@@ -49,20 +49,18 @@ GLfloat cameraSpeed = 10.0f;
 
 // Light Attributes
 boolean onLight = true;
-GLfloat lightX = 0.0f;
-GLfloat lightY = 0.0f;
-GLfloat lightZ = 0.0f;
+boolean isDay = true;
 GLfloat blackLight[4] = { 0, 0, 0, 1 };
 GLfloat whiteLight[4] = { 1, 1, 1, 1 };
-GLfloat greyLight[4] = { 0.75, 0.75, 0.75, 0.5 };
+GLfloat greyLight[4] = { 0.5, 0.5, 0.5, 1.0 };
 GLfloat positionLight[4] = { 0.0f, 0.f, 0.0f, 0.0f };
-GLfloat spotLight[4] = { 0, 0, 0, 0 };
 
 // Texture Attributes
 BITMAP BMP;
 HBITMAP hBMP = NULL;
 boolean onTexture = true;
 GLint textureTheme = 1;
+GLint environmentTheme = 1;
 
 // Texture Initiliazation --> Theme 1
 GLuint starStrip2Texture = 0;
@@ -105,7 +103,11 @@ GLuint kunaiTexture = 0;
 
 // Environment
 GLuint ruinTexture = 0;
-GLuint ruin1Texture = 0;
+GLuint ruin2Texture = 0;
+GLuint ruinFloorTexture = 0;
+GLuint ruinFloor2Texture = 0;
+GLuint ruinSkyTexture = 0;
+GLuint ruinSky2Texture = 0;
 
 // State Attributes
 boolean onRest = true;
@@ -263,26 +265,25 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			lastY = 0.0f;
 
 			// Projection Attributes
-			r = 1.0f;
-			angle = 90.0f;
+			r = -2.5f;
+			angle = 360.0f;
 			eyeX = r * sin(angle * 3.142 / 180.0);
 			eyeY = r;
 			eyeZ = r * cos(angle * 3.142 / 180.0);
 			lookAtX = 0.0f;
-			lookAtY = 0.0f;
+			lookAtY = -4.0f;
 			lookAtZ = 0.0f;
 			upX = 0.0f;
 			upY = 1.0f;
 			upZ = 0.0f;
 
 			// Light Attributes
-			lightX = 0.0f;
-			lightY = 0.0f;
-			lightZ = 0.0f;
-			spotLight[0] = lightX;
-			spotLight[1] = lightY;
-			spotLight[2] = lightZ;
+			positionLight[0] = 0.0f;
+			positionLight[1] = 0.0f;
+			positionLight[2] = 0.0f;
+			positionLight[3] = 0.0f;
 			onLight = true;
+			isDay = true;
 
 			// Texture Attributes
 			onTexture = true;
@@ -358,7 +359,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				isOrtho = true;
 				glMatrixMode(GL_PROJECTION);
 				glLoadIdentity();
-				glOrtho(-5, 5, -5, 5, -5, 5);
+				glOrtho(-5, 5, -5, 5, 2, 10);
 			}
 			else if (wParam == VK_NUMPAD0)
 			{
@@ -368,7 +369,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 				if (isOrtho)
 				{
-					glOrtho(-5, 5, -5, 5, -5, 5);
+					glOrtho(-5, 5, -5, 5, 2, 10);
 				}
 				else
 				{
@@ -383,13 +384,13 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Reset MODE 1
 			if (wParam == VK_TAB)
 			{
-				r = 1.0f;
-				angle = 90.0f;
+				r = -2.5f;
+				angle = 360.0f;
 				eyeX = r * sin(angle * 3.142 / 180.0);
 				eyeY = r;
 				eyeZ = r * cos(angle * 3.142 / 180.0);
 				lookAtX = 0.0f;
-				lookAtY = 0.0f;
+				lookAtY = -4.0f;
 				lookAtZ = 0.0f;
 				upX = 0.0f;
 				upY = 1.0f;
@@ -412,15 +413,21 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			else if (wParam == 'W')
 			{
-				eyeX = r * sin(angle * 3.142 / 180.0);
-				eyeY += eyeY * 0.1f;
-				eyeZ = r * cos(angle * 3.142 / 180.0);
+				if (eyeY > -4.5)
+				{
+					eyeX = r * sin(angle * 3.142 / 180.0);
+					eyeY += eyeY * 0.1f;
+					eyeZ = r * cos(angle * 3.142 / 180.0);
+				}
 			}
 			else if (wParam == 'S')
 			{
-				eyeX = r * sin(angle * 3.142 / 180.0);
-				eyeY -= eyeY * 0.1f;
-				eyeZ = r * cos(angle * 3.142 / 180.0);
+				if (eyeY < -1.0)
+				{
+					eyeX = r * sin(angle * 3.142 / 180.0);
+					eyeY -= eyeY * 0.1f;
+					eyeZ = r * cos(angle * 3.142 / 180.0);
+				}
 			}
 			else if (wParam == 'Q')
 			{
@@ -494,13 +501,12 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Reset MODE 2
 			if (wParam == VK_TAB)
 			{
-				lightX = 0.0f;
-				lightY = 0.0f;
-				lightZ = 0.0f;
-				spotLight[0] = lightX;
-				spotLight[1] = lightY;
-				spotLight[2] = lightZ;
+				positionLight[0] = 0.0f;
+				positionLight[1] = 0.0f;
+				positionLight[2] = 0.0f;
+				positionLight[3] = 0.0f;
 				onLight = true;
+				isDay = true;
 			}
 			else if (wParam == 'D')	// Right
 			{
@@ -536,6 +542,10 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			{
 				onLight = !onLight;
 			}
+			else if (wParam == 'Z')	// On/Off Day
+			{
+				isDay = !isDay;
+			}
 		}
 
 		// MODE 3: Texture Control
@@ -554,6 +564,10 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			if (wParam == 'Z')
 			{
 				textureTheme = textureTheme == 1 ? 2 : 1;
+			}
+			if (wParam == 'C')
+			{
+				environmentTheme = environmentTheme == 1 ? 2 : 1;
 			}
 		}
 
@@ -721,7 +735,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 						}
 					}
 				}
-				else if (wParam == 'A')
+				else if (wParam == 'D')
 				{
 					if (rotateShoulderJointZ < 10.0f)
 					{
@@ -732,7 +746,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 						rotateUpperArmJointY += speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'D')
+				else if (wParam == 'A')
 				{
 					if (rotateShoulderJointZ > -10.0f)
 					{
@@ -743,7 +757,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 						rotateUpperArmJointY -= speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'E')
+				else if (wParam == 'Q')
 				{
 					if (rotateShoulderJointY < 10.0f)
 					{
@@ -754,7 +768,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 						rotateUpperArmJointZ -= speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'Q')
+				else if (wParam == 'E')
 				{
 					if (rotateShoulderJointY > -10.0f)
 					{
@@ -765,14 +779,14 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 						rotateUpperArmJointZ += speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'H')
+				else if (wParam == 'F')
 				{
 					if (rotateElbowJointX < 25.0f)
 					{
 						rotateElbowJointX += speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'F')
+				else if (wParam == 'H')
 				{
 					if (rotateElbowJointX > 0.0f)
 					{
@@ -793,14 +807,14 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 						rotateElbowJointY -= speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'Y')
+				else if (wParam == 'R')
 				{
 					if (rotateElbowJointZ < 10.0f)
 					{
 						rotateElbowJointZ += speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'R')
+				else if (wParam == 'Y')
 				{
 					if (rotateElbowJointZ > -10.0f)
 					{
@@ -821,28 +835,28 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 						rotateWristJointX -= speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'J')
+				else if (wParam == 'L')
 				{
 					if (rotateWristJointY < 10.0f)
 					{
 						rotateWristJointY += speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'L')
+				else if (wParam == 'J')
 				{
 					if (rotateWristJointY > -10.0f)
 					{
 						rotateWristJointY -= speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'O')
+				else if (wParam == 'U')
 				{
 					if (rotateWristJointZ < 10.0f)
 					{
 						rotateWristJointZ += speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'U')
+				else if (wParam == 'O')
 				{
 					if (rotateWristJointZ > -10.0f)
 					{
@@ -955,19 +969,19 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				{
 					rotatePalmX -= speed * elapsedSeconds;
 				}
-				else if (wParam == 'A')
+				else if (wParam == 'D')
 				{
 					rotatePalmZ += speed * elapsedSeconds;
 				}
-				else if (wParam == 'D')
+				else if (wParam == 'A')
 				{
 					rotatePalmZ -= speed * elapsedSeconds;
 				}
-				else if (wParam == 'E')
+				else if (wParam == 'Q')
 				{
 					rotatePalmY += speed * elapsedSeconds;
 				}
-				else if (wParam == 'Q')
+				else if (wParam == 'E')
 				{
 					rotatePalmY -= speed * elapsedSeconds;
 				}
@@ -1003,12 +1017,12 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 						rotateHandZ -= speed * elapsedSeconds;
 					}
 				}
-				else if (wParam == 'Y')
+				else if (wParam == 'R')
 				{
 					rotatePalmY += speed * elapsedSeconds;
 					rotateHandY -= speed * elapsedSeconds;
 				}
-				else if (wParam == 'R')
+				else if (wParam == 'Y')
 				{
 					rotatePalmY -= speed * elapsedSeconds;
 					rotateHandY += speed * elapsedSeconds;
@@ -1074,13 +1088,19 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					isTriggered = false;
 					triggerCount = 0;
 				}
-				else if (wParam == 'A')
-				{
-					rotateGunY += speed * elapsedSeconds;
-				}
 				else if (wParam == 'D')
 				{
-					rotateGunY -= speed * elapsedSeconds;
+					if (rotateGunY < 180.0f)
+					{
+						rotateGunY += speed * elapsedSeconds;
+					}
+				}
+				else if (wParam == 'A')
+				{
+					if (rotateGunY > 0.0f)
+					{
+						rotateGunY -= speed * elapsedSeconds;
+					}
 				}
 				else if (wParam == 'Z')
 				{
@@ -1772,35 +1792,35 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 			glTranslatef(0.0f, -(radius - trimRadius), 0.0f);
 			glPushMatrix();
 			{
-				glEnable(GL_CLIP_PLANE0);
+				if (onTexture)
 				{
-					glClipPlane(GL_CLIP_PLANE0, headTrim);
-
-					if (onTexture)
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					if (textureTheme == 1)
 					{
-						glEnable(GL_TEXTURE_2D);
+						glBindTexture(GL_TEXTURE_2D, body2Texture);
 					}
+					else if (textureTheme == 2)
 					{
-						if (textureTheme == 1)
-						{
-							glBindTexture(GL_TEXTURE_2D, body2Texture);
-						}
-						else if (textureTheme == 2)
-						{
-							glBindTexture(GL_TEXTURE_2D, damageBodyTexture);
-						}
+						glBindTexture(GL_TEXTURE_2D, damageBodyTexture);
+					}
+					gluQuadricTexture(quad, GL_TRUE);
+
+					glEnable(GL_CLIP_PLANE0);
+					{
+						glClipPlane(GL_CLIP_PLANE0, headTrim);
 
 						// 2. Translate the head up 'radius - trimRadius', trim 'trimRadius' of the front face
 						glTranslatef(0.0f, radius - trimRadius, 0.0f);
 						// 1. Turn the front face of the head to bottom before trim
 						glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-						gluQuadricTexture(quad, GL_TRUE);
 						// PLY: gluSphere()
 						gluSphere(quad, radius, headSlices, headStacks);
 					}
-					glDisable(GL_TEXTURE_2D);
+					glDisable(GL_CLIP_PLANE0);
 				}
-				glDisable(GL_CLIP_PLANE0);
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 		}
@@ -3440,15 +3460,13 @@ void drawShoulder(GLfloat shoulderHeight, GLfloat armorDepth, boolean isRight)
 		// 4 Guns
 		glPushMatrix();
 		{
-			glRotatef(rotateGunY, 0.0f, 1.0f, 0.0f);
-
 			if (isRight)
 			{
-				glTranslatef(shoulderHeight / 7, 0.0f, 0.0f);
+				glRotatef(-rotateGunY, 0.0f, 1.0f, 0.0f);
 			}
 			else
 			{
-				glTranslatef(-shoulderHeight / 7, 0.0f, 0.0f);
+				glRotatef(rotateGunY, 0.0f, 1.0f, 0.0f);
 			}
 
 			if (onGun)
@@ -4010,6 +4028,10 @@ void display()
 	GLfloat fingerTipRadius = 0.01875f;
 	GLfloat palmLength = 0.1275f;
 	GLfloat environmentRadius = 5.0f;
+	//eyeX = r * sin(angle * 3.142 / 180.0);
+	//eyeZ = r * cos(angle * 3.142 / 180.0);
+
+	glColor3f(0.0f, 0.0f, 0.0f);
 
 	glPushMatrix();
 	{
@@ -4018,90 +4040,123 @@ void display()
 			lookAtX, lookAtY, lookAtZ,	// Look At
 			upX, upY, upZ);	// World Up
 
-		glRotatef(camRotation[0], 1, 0, 0);
-		glRotatef(camRotation[1], 0, 1, 0);
-		//glRotatef(camRotation[2], 0, 0, 1);
-		glTranslatef(0.0f, 0.0f, camRotation[2]);
+		glRotatef(camRotation[0], 1.0f, 0.0f, 0.0f);
+		glRotatef(camRotation[1], 0.0f, 1.0f, 0.0f);
+		glRotatef(camRotation[2], 0.0f, 0.0f, 1.0f);
 
 		if (onLight)
 		{
 			glEnable(GL_LIGHT0);
-			glEnable(GL_LIGHT1);
-			glEnable(GL_LIGHT2);
-			glEnable(GL_LIGHT3);
 			glEnable(GL_LIGHTING);
 		}
 		else
 		{
 			glDisable(GL_LIGHT0);
-			glDisable(GL_LIGHT1);
-			glDisable(GL_LIGHT2);
-			glDisable(GL_LIGHT3);
 			glDisable(GL_LIGHTING);
 		}
-		GLfloat position1[4] = { 10.0f, 0.0f, 0.0f, 0.0f };
-		GLfloat position2[4] = { -10.0f, 0.0f, 0.0f, 0.0f };
-		GLfloat position3[4] = { 0.0f, 0.0f, -10.0f, 0.0f };
-		GLfloat position4[4] = { 0.0f, 0.0f, 10.0f, 0.0f };
+
+		if (isDay)
+		{
+			glLightfv(GL_LIGHT0, GL_AMBIENT, whiteLight);
+			glLightfv(GL_LIGHT0, GL_DIFFUSE, blackLight);
+			glLightfv(GL_LIGHT0, GL_SPECULAR, whiteLight);
+		}
+		else
+		{
+			glLightfv(GL_LIGHT0, GL_AMBIENT, blackLight);
+			glLightfv(GL_LIGHT0, GL_DIFFUSE, whiteLight);
+			glLightfv(GL_LIGHT0, GL_SPECULAR, blackLight);
+		}
 
 		glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, positionLight);
-		//glLightfv(GL_LIGHT1, GL_POSITION, position2);
-		//glLightfv(GL_LIGHT2, GL_POSITION, position3);
-		//glLightfv(GL_LIGHT3, GL_POSITION, position4);
+
+		setMaterial(whiteLight, whiteLight, whiteLight);
 
 		glPushMatrix();
 		{
-			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 			// Sky
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, environmentRadius, 0.0f);
 				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-				setMaterial(blackLight, whiteLight, greyLight);
-				// PLY: gluDisk()
-				gluDisk(quad, 0.0f, environmentRadius, headSlices, headStacks);
+
+				glEnable(GL_TEXTURE_2D);
+				{
+					if (environmentTheme == 1)
+					{
+						glBindTexture(GL_TEXTURE_2D, ruinSkyTexture);
+					}
+					else if (environmentTheme == 2)
+					{
+						glBindTexture(GL_TEXTURE_2D, ruinSky2Texture);
+					}
+
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluDisk()
+					gluDisk(quad, 0.0f, environmentRadius, headSlices, headStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 
 			// Ruin
 			glPushMatrix();
 			{
-				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D, ruin1Texture);
-				gluQuadricTexture(quad, GL_TRUE);
 				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 				glTranslatef(0.0f, 0.0f, -environmentRadius);
-				setMaterial(blackLight, whiteLight, greyLight);
-				// PLY: gluSphere()
-				gluCylinder(quad, environmentRadius, environmentRadius, environmentRadius * 2.0, headSlices, headStacks);
+
+				glEnable(GL_TEXTURE_2D);
+				{
+					if (environmentTheme == 1)
+					{
+						glBindTexture(GL_TEXTURE_2D, ruinTexture);
+					}
+					else if (environmentTheme == 2)
+					{
+						glBindTexture(GL_TEXTURE_2D, ruin2Texture);
+					}
+
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluSphere()
+					gluCylinder(quad, environmentRadius, environmentRadius, environmentRadius * 2.0, headSlices, headStacks);
+				}
 				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 
-			// Ground
-			glPushMatrix();
-			{
-				glTranslatef(0.0f, -mainRadius * 2, 0.0f);
-				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-				setMaterial(blackLight, whiteLight, greyLight);
-				// PLY: gluDisk()
-				gluDisk(quad, 0.0f, environmentRadius, headSlices, headStacks);
-			}
-			glPopMatrix();
-
-			// Under Ground
+			// Floor
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, -environmentRadius, 0.0f);
 				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-				setMaterial(blackLight, whiteLight, greyLight);
-				// PLY: gluDisk()
-				gluDisk(quad, 0.0f, environmentRadius, headSlices, headStacks);
+
+				glEnable(GL_TEXTURE_2D);
+				{
+					if (environmentTheme == 1)
+					{
+						glBindTexture(GL_TEXTURE_2D, ruinFloorTexture);
+					}
+					else if (environmentTheme == 2)
+					{
+						glBindTexture(GL_TEXTURE_2D, ruinFloor2Texture);
+					}
+
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluDisk()
+					gluDisk(quad, 0.0f, environmentRadius, headSlices, headStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 
 			// Robot Name: Ruin Araneid
-			drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, palmLength);
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, -environmentRadius + mainRadius * 2, 0.0f);
+				setMaterial(greyLight, greyLight, greyLight);
+				drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, palmLength);
+			}
+			glPopMatrix();
 		}
 		glPopMatrix();
 	}
@@ -4114,17 +4169,23 @@ void display()
 void setupCamera()
 {
 	glMatrixMode(GL_PROJECTION);
-	glOrtho(-5, 5, -5, 5, -5, 5);
+	glOrtho(-5, 5, -5, 5, 2, 10);
 }
 
 void setupLighting()
 {
-	// AMBIENT DEFAULT 0, 0, 0, 1
-	// DIFFUSE DEFAULT 1, 1, 1, 1
-	glLightfv(GL_LIGHT0, GL_AMBIENT, whiteLight);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, whiteLight);
-	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, spotLight);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, whiteLight);
+	if (isDay)
+	{
+		glLightfv(GL_LIGHT0, GL_AMBIENT, whiteLight);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, blackLight);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, whiteLight);
+	}
+	else
+	{
+		glLightfv(GL_LIGHT0, GL_AMBIENT, blackLight);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, whiteLight);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, blackLight);
+	}
 }
 
 void setupGLProperties()
@@ -4236,7 +4297,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow)
 	setupTextures("kunai.bmp", &kunaiTexture);
 
 	setupTextures("ruin.bmp", &ruinTexture);
-	setupTextures("ruin1.bmp", &ruin1Texture);
+	setupTextures("ruin2.bmp", &ruin2Texture);
+	setupTextures("ruinFloor.bmp", &ruinFloorTexture);
+	setupTextures("ruinFloor2.bmp", &ruinFloor2Texture);
+	setupTextures("ruinSky.bmp", &ruinSkyTexture);
+	setupTextures("ruinSky2.bmp", &ruinSky2Texture);
 
 	while (true)
 	{
