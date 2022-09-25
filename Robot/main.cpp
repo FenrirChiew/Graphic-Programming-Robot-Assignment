@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <Windowsx.h>
 #include <gl/GL.h>
 #include <gl/GLU.h>
 #include <math.h>
@@ -18,7 +19,9 @@ float frameNo = 100.0f;
 
 // Control Attributes
 int mode = 0;
-int direction = 0;
+float camRotation[3] = { 0.0f, 0.0f, 0.0f };
+float lastX = 0.0f;
+float lastY = 0.0f;
 
 // Robot Attributes
 GLint headSlices = 50;
@@ -31,7 +34,7 @@ GLfloat speed = 15.0f;
 
 // Projection Attributes
 boolean isOrtho = true;
-GLfloat r = 2.0f;
+GLfloat r = 1.0f;
 GLfloat angle = 90.0f;
 GLfloat eyeX = r * sin(angle * 3.142 / 180.0);
 GLfloat eyeY = r;
@@ -45,18 +48,64 @@ GLfloat upZ = 0.0f;
 GLfloat cameraSpeed = 10.0f;
 
 // Light Attributes
+boolean onLight = true;
 GLfloat lightX = 0.0f;
-GLfloat lightY = 10.0f;
+GLfloat lightY = 0.0f;
 GLfloat lightZ = 0.0f;
-GLfloat positionLight0[4] = { lightX, lightY, lightZ, 0.0f };
-boolean isOn = true;
+GLfloat blackLight[4] = { 0, 0, 0, 1 };
+GLfloat whiteLight[4] = { 1, 1, 1, 1 };
+GLfloat greyLight[4] = { 0.75, 0.75, 0.75, 0.5 };
+GLfloat positionLight[4] = { 0.0f, 0.f, 0.0f, 0.0f };
+GLfloat spotLight[4] = { 0, 0, 0, 0 };
 
 // Texture Attributes
-int materialType = 1;
-GLuint texTexture = 0;
-LPCSTR texFile = "tex.bmp";
 BITMAP BMP;
 HBITMAP hBMP = NULL;
+boolean onTexture = true;
+GLint textureTheme = 1;
+
+// Texture Initiliazation --> Theme 1
+GLuint starStrip2Texture = 0;
+GLuint head3Texture = 0;
+GLuint eye2Texture = 0;
+GLuint leg5Texture = 0;
+GLuint legTipTexture = 0;
+GLuint metal5Texture = 0;
+GLuint body2Texture = 0;
+GLuint nailTexture = 0;
+GLuint nailCoverTexture = 0;
+GLuint shoulder2Texture = 0;
+GLuint darkGreyMetalTexture = 0;
+GLuint bluePlaneTexture = 0;
+GLuint fourBluePlaneTexture = 0;
+
+// Damage Texture Theme --> Theme 2
+GLuint damageBodyTexture = 0;
+GLuint damageLegTexture = 0;
+GLuint damageShoulderTexture = 0;
+GLuint damageLowerShoulderTexture = 0;
+GLuint damageEyeTexture = 0;
+
+// Stand 
+GLuint stand1Texture = 0;
+GLuint lowerStandTexture = 0;
+
+// Gun Texture
+GLuint metalTexture = 0;
+GLuint gunMegazineTexture = 0;
+GLuint kunai2Texture = 0;
+GLuint bulletTexture = 0;
+
+// Finger
+GLuint purpleMetalTexture = 0;
+GLuint blackMetalTexture = 0;
+GLuint fingerTexture = 0;
+GLuint waistTexture = 0;
+GLuint kunaiTexture = 0;
+
+// Environment
+GLuint ruinTexture = 0;
+GLuint ruin1Texture = 0;
 
 // State Attributes
 boolean onRest = true;
@@ -97,9 +146,9 @@ boolean onHand = false;
 boolean firstHand = true;
 GLfloat handSpeed = 0.0f;
 GLfloat handSize = 0.0f;
-GLfloat rotatePlamX = 0.0f;
-GLfloat rotatePlamY = 0.0f;
-GLfloat rotatePlamZ = 0.0f;
+GLfloat rotatePalmX = 0.0f;
+GLfloat rotatePalmY = 0.0f;
+GLfloat rotatePalmZ = 0.0f;
 GLfloat rotateHandX = 0.0f;
 GLfloat rotateHandY = 0.0f;
 GLfloat rotateHandZ = 0.0f;
@@ -110,9 +159,7 @@ boolean punchReturn = false;
 boolean onGun = false;
 boolean firstGun = true;
 GLfloat gunSize = 0.0f;
-GLfloat rotateGunX = 0.0f;
 GLfloat rotateGunY = 0.0f;
-GLfloat rotateGunZ = 0.0f;
 GLfloat gunTranslate = 0.0f;
 GLfloat magazineSpeed = 0.0f;
 GLfloat isReload = true;
@@ -127,7 +174,25 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
-
+	case WM_MOUSEMOVE:
+		switch (wParam) {
+		case MK_LBUTTON:
+			int xPos = GET_X_LPARAM(lParam);
+			int yPos = GET_Y_LPARAM(lParam);
+			camRotation[0] += (yPos - lastY) / 2;
+			camRotation[1] += (xPos - lastX) / 2;
+			lastX = xPos;
+			lastY = yPos;
+			break;
+		}
+		break;
+	case WM_LBUTTONDOWN:
+		lastX = GET_X_LPARAM(lParam);
+		lastY = GET_Y_LPARAM(lParam);
+		break;
+	case WM_MOUSEWHEEL:
+		camRotation[2] += GET_WHEEL_DELTA_WPARAM(wParam) / 120.0f;
+		break;
 	case WM_KEYDOWN:
 		if (wParam == VK_ESCAPE) PostQuitMessage(0);
 		if (wParam == VK_NUMPAD0)
@@ -180,10 +245,25 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// MODE 9: Weapon Control (Gun)
 			mode = 9;
 		}
+		else if (wParam == 'M')
+		{
+			camRotation[0] = 0.0f;
+			camRotation[1] = 0.0f;
+			camRotation[2] = 0.0f;
+			lastX = 0.0f;
+			lastY = 0.0f;
+		}
 		else if (wParam == ' ')	// Reset All
 		{
+			// Control Attributes
+			camRotation[0] = 0.0f;
+			camRotation[1] = 0.0f;
+			camRotation[2] = 0.0f;
+			lastX = 0.0f;
+			lastY = 0.0f;
+
 			// Projection Attributes
-			r = 2.0f;
+			r = 1.0f;
 			angle = 90.0f;
 			eyeX = r * sin(angle * 3.142 / 180.0);
 			eyeY = r;
@@ -197,16 +277,16 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 			// Light Attributes
 			lightX = 0.0f;
-			lightY = 10.0f;
+			lightY = 0.0f;
 			lightZ = 0.0f;
-			positionLight0[0] = lightX;
-			positionLight0[1] = lightY;
-			positionLight0[2] = lightZ;
-			positionLight0[3] = 0.0f;
-			isOn = true;
+			spotLight[0] = lightX;
+			spotLight[1] = lightY;
+			spotLight[2] = lightZ;
+			onLight = true;
 
 			// Texture Attributes
-			materialType = 1;
+			onTexture = true;
+			textureTheme = 1;
 
 			// State Attributes
 			onRest = true;
@@ -247,9 +327,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			firstHand = true;
 			handSpeed = 0.0f;
 			handSize = 0.0f;
-			rotatePlamX = 0.0f;
-			rotatePlamY = 0.0f;
-			rotatePlamZ = 0.0f;
+			rotatePalmX = 0.0f;
+			rotatePalmY = 0.0f;
+			rotatePalmZ = 0.0f;
 			rotateHandX = 0.0f;
 			rotateHandY = 0.0f;
 			rotateHandZ = 0.0f;
@@ -260,9 +340,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			onGun = false;
 			firstGun = true;
 			gunSize = 0.0f;
-			rotateGunX = 0.0f;
 			rotateGunY = 0.0f;
-			rotateGunZ = 0.0f;
 			gunTranslate = 0.0f;
 			magazineSpeed = 0.0f;
 			isReload = true;
@@ -280,7 +358,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				isOrtho = true;
 				glMatrixMode(GL_PROJECTION);
 				glLoadIdentity();
-				glOrtho(-3, 3, -3, 3, -3, 3);
+				glOrtho(-5, 5, -5, 5, -5, 5);
 			}
 			else if (wParam == VK_NUMPAD0)
 			{
@@ -290,7 +368,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 				if (isOrtho)
 				{
-					glOrtho(-3, 3, -3, 3, -3, 3);
+					glOrtho(-5, 5, -5, 5, -5, 5);
 				}
 				else
 				{
@@ -305,7 +383,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Reset MODE 1
 			if (wParam == VK_TAB)
 			{
-				r = 2.0f;
+				r = 1.0f;
 				angle = 90.0f;
 				eyeX = r * sin(angle * 3.142 / 180.0);
 				eyeY = r;
@@ -417,47 +495,46 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			if (wParam == VK_TAB)
 			{
 				lightX = 0.0f;
-				lightY = 10.0f;
+				lightY = 0.0f;
 				lightZ = 0.0f;
-				positionLight0[0] = lightX;
-				positionLight0[1] = lightY;
-				positionLight0[2] = lightZ;
-				positionLight0[3] = 0.0f;
-				isOn = true;
+				spotLight[0] = lightX;
+				spotLight[1] = lightY;
+				spotLight[2] = lightZ;
+				onLight = true;
 			}
 			else if (wParam == 'D')	// Right
 			{
 				// lightX
-				positionLight0[0] += cameraSpeed * elapsedSeconds;
+				positionLight[0] += cameraSpeed * elapsedSeconds;
 			}
 			else if (wParam == 'A')	// Left
 			{
 				// lightX
-				positionLight0[0] -= cameraSpeed * elapsedSeconds;
+				positionLight[0] -= cameraSpeed * elapsedSeconds;
 			}
 			else if (wParam == 'W')	// Up
 			{
 				// lightY
-				positionLight0[1] += cameraSpeed * elapsedSeconds;
+				positionLight[1] += cameraSpeed * elapsedSeconds;
 			}
 			else if (wParam == 'S')	// Down
 			{
 				// lightY
-				positionLight0[1] -= cameraSpeed * elapsedSeconds;
+				positionLight[1] -= cameraSpeed * elapsedSeconds;
 			}
 			else if (wParam == 'Q')	// Near
 			{
 				// lightZ
-				positionLight0[2] += cameraSpeed * elapsedSeconds;
+				positionLight[2] += cameraSpeed * elapsedSeconds;
 			}
 			else if (wParam == 'E')	// Far
 			{
 				// lightZ
-				positionLight0[2] -= cameraSpeed * elapsedSeconds;
+				positionLight[2] -= cameraSpeed * elapsedSeconds;
 			}
 			else if (wParam == 'X')	// On/Off Light
 			{
-				isOn = !isOn;
+				onLight = !onLight;
 			}
 		}
 
@@ -467,7 +544,16 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Reset MODE 3
 			if (wParam == VK_TAB)
 			{
-
+				onTexture = true;
+				textureTheme = 1;
+			}
+			else if (wParam == 'X')
+			{
+				onTexture = !onTexture;
+			}
+			if (wParam == 'Z')
+			{
+				textureTheme = textureTheme == 1 ? 2 : 1;
 			}
 		}
 
@@ -500,9 +586,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				onGun = false;
 				firstGun = true;
 				gunSize = 0.0f;
-				rotateGunX = 0.0f;
 				rotateGunY = 0.0f;
-				rotateGunZ = 0.0f;
 				gunTranslate = 0.0f;
 				magazineSpeed = 0.0f;
 				isReload = true;
@@ -533,9 +617,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				onGun = false;
 				firstGun = true;
 				gunSize = 0.0f;
-				rotateGunX = 0.0f;
 				rotateGunY = 0.0f;
-				rotateGunZ = 0.0f;
 				gunTranslate = 0.0f;
 				magazineSpeed = 0.0f;
 				isReload = true;
@@ -792,9 +874,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					onGun = false;
 					firstGun = true;
 					gunSize = 0.0f;
-					rotateGunX = 0.0f;
 					rotateGunY = 0.0f;
-					rotateGunZ = 0.0f;
 					gunTranslate = 0.0f;
 					magazineSpeed = 0.0f;
 					isReload = true;
@@ -812,9 +892,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					onHand = !onHand;
 					rotateFinger = 90.0f;
 					rotateTumb = -45.0f;
-					rotatePlamX = 0.0f;
-					rotatePlamY = 0.0f;
-					rotatePlamZ = 0.0f;
+					rotatePalmX = 0.0f;
+					rotatePalmY = 0.0f;
+					rotatePalmZ = 0.0f;
 					rotateHandX = 0.0f;
 					rotateHandY = 0.0f;
 					rotateHandZ = 0.0f;
@@ -825,9 +905,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				else if (wParam == 'G')
 				{
 					onGun = !onGun;
-					rotateGunX = 0.0f;
 					rotateGunY = 0.0f;
-					rotateGunZ = 0.0f;
 					magazineSpeed = 0.0f;
 					isReload = true;
 					isTriggered = false;
@@ -860,9 +938,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				{
 					rotateFinger = 90.0f;
 					rotateTumb = -45.0f;
-					rotatePlamX = 0.0f;
-					rotatePlamY = 0.0f;
-					rotatePlamZ = 0.0f;
+					rotatePalmX = 0.0f;
+					rotatePalmY = 0.0f;
+					rotatePalmZ = 0.0f;
 					rotateHandX = 0.0f;
 					rotateHandY = 0.0f;
 					rotateHandZ = 0.0f;
@@ -871,56 +949,68 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				}
 				else if (wParam == 'W')
 				{
-					rotatePlamX += speed * elapsedSeconds;
+					rotatePalmX += speed * elapsedSeconds;
 				}
 				else if (wParam == 'S')
 				{
-					rotatePlamX -= speed * elapsedSeconds;
+					rotatePalmX -= speed * elapsedSeconds;
 				}
 				else if (wParam == 'A')
 				{
-					rotatePlamZ += speed * elapsedSeconds;
+					rotatePalmZ += speed * elapsedSeconds;
 				}
 				else if (wParam == 'D')
 				{
-					rotatePlamZ -= speed * elapsedSeconds;
+					rotatePalmZ -= speed * elapsedSeconds;
 				}
 				else if (wParam == 'E')
 				{
-					rotatePlamY += speed * elapsedSeconds;
+					rotatePalmY += speed * elapsedSeconds;
 				}
 				else if (wParam == 'Q')
 				{
-					rotatePlamY -= speed * elapsedSeconds;
+					rotatePalmY -= speed * elapsedSeconds;
 				}
 				else if (wParam == 'T')
 				{
-					rotatePlamX += speed * elapsedSeconds;
-					rotateHandX -= speed * elapsedSeconds;
+					if (rotateHandX > -100.0f)
+					{
+						rotatePalmX += speed * elapsedSeconds;
+						rotateHandX -= speed * elapsedSeconds;
+					}
 				}
 				else if (wParam == 'G')
 				{
-					rotatePlamX -= speed * elapsedSeconds;
-					rotateHandX += speed * elapsedSeconds;
+					if (rotateHandX < 100.0f)
+					{
+						rotatePalmX -= speed * elapsedSeconds;
+						rotateHandX += speed * elapsedSeconds;
+					}
 				}
 				else if (wParam == 'H')
 				{
-					rotatePlamZ -= speed * elapsedSeconds;
-					rotateHandZ += speed * elapsedSeconds;
+					if (rotateHandZ < 100.0f)
+					{
+						rotatePalmZ -= speed * elapsedSeconds;
+						rotateHandZ += speed * elapsedSeconds;
+					}
 				}
 				else if (wParam == 'F')
 				{
-					rotatePlamZ += speed * elapsedSeconds;
-					rotateHandZ -= speed * elapsedSeconds;
+					if (rotateHandZ > -100.0f)
+					{
+						rotatePalmZ += speed * elapsedSeconds;
+						rotateHandZ -= speed * elapsedSeconds;
+					}
 				}
 				else if (wParam == 'Y')
 				{
-					rotatePlamY += speed * elapsedSeconds;
+					rotatePalmY += speed * elapsedSeconds;
 					rotateHandY -= speed * elapsedSeconds;
 				}
 				else if (wParam == 'R')
 				{
-					rotatePlamY -= speed * elapsedSeconds;
+					rotatePalmY -= speed * elapsedSeconds;
 					rotateHandY += speed * elapsedSeconds;
 				}
 				else if (wParam == 'Z')
@@ -978,21 +1068,11 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				// Reset MODE 9
 				if (wParam == VK_TAB)
 				{
-					rotateGunX = 0.0f;
 					rotateGunY = 0.0f;
-					rotateGunZ = 0.0f;
 					isReload = true;
 					magazineSpeed = 0.0f;
 					isTriggered = false;
 					triggerCount = 0;
-				}
-				else if (wParam == 'W')
-				{
-					rotateGunX += speed * elapsedSeconds;
-				}
-				else if (wParam == 'S')
-				{
-					rotateGunX -= speed * elapsedSeconds;
 				}
 				else if (wParam == 'A')
 				{
@@ -1001,14 +1081,6 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				else if (wParam == 'D')
 				{
 					rotateGunY -= speed * elapsedSeconds;
-				}
-				else if (wParam == 'E')
-				{
-					rotateGunZ += speed * elapsedSeconds;
-				}
-				else if (wParam == 'Q')
-				{
-					rotateGunZ -= speed * elapsedSeconds;
 				}
 				else if (wParam == 'Z')
 				{
@@ -1094,36 +1166,61 @@ void drawNormalizedVertex(GLfloat x, GLfloat y, GLfloat z)
 	glVertex3f(x, y, z);
 }
 
+void setMaterial(GLfloat ambientMaterial[4], GLfloat diffuseMaterial[4], GLfloat specularMaterial[4])
+{
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMaterial);
+}
+
 void draw4PointedStarStrip(GLfloat radius, GLfloat depth)
 {
 	// PLY: GL_QUAD_STRIP
 	glBegin(GL_QUAD_STRIP);
 	{
+		glTexCoord2f(1.0f, 1.0f);
 		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		glTexCoord2f(1.0f, 0.0f);
 		drawNormalizedVertex(0.0f, radius, depth / 2);
 
+		glTexCoord2f(0.0f, 1.0f);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0.0f, 0.0f);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0f, 1.0f);
 		drawNormalizedVertex(-radius, 0.0f, -depth / 2);
+		glTexCoord2f(1.0f, 0.0f);
 		drawNormalizedVertex(-radius, 0.0f, depth / 2);
 
+		glTexCoord2f(0.0f, 0.0f);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0.0f, 1.0f);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0f, 1.0f);
 		drawNormalizedVertex(0.0f, -radius, -depth / 2);
+		glTexCoord2f(1.0f, 0.0f);
 		drawNormalizedVertex(0.0f, -radius, depth / 2);
 
+		glTexCoord2f(0.0f, 0.0f);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0.0f, 1.0f);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, -radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0f, 1.0f);
 		drawNormalizedVertex(radius, 0.0f, -depth / 2);
+		glTexCoord2f(1.0f, 0.0f);
 		drawNormalizedVertex(radius, 0.0f, depth / 2);
 
+		glTexCoord2f(0.0f, 0.0f);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0.0f, 1.0f);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0f, 1.0f);
 		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		glTexCoord2f(1.0f, 0.0f);
 		drawNormalizedVertex(0.0f, radius, depth / 2);
 	}
 	glEnd();
@@ -1133,46 +1230,73 @@ void draw4PointedStar(GLfloat outerRadius, GLfloat innerRadius, GLfloat outerDep
 {
 	GLfloat interval = innerDepth - outerDepth;
 
-	glPushMatrix();
+	if (onTexture)
 	{
-		glTranslatef(0.0f, 0.0f, interval);
-		draw4PointedStarStrip(outerRadius, outerDepth);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glPopMatrix();
-
-	draw4PointedStarStrip(innerRadius, innerDepth);
-
-	// PLY: GL_QUAD_STRIP
-	glBegin(GL_QUAD_STRIP);
 	{
-		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
+		glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
 
-		drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, interval);
+			draw4PointedStarStrip(outerRadius, outerDepth);
+		}
+		glPopMatrix();
 
-		drawNormalizedVertex(-outerRadius, 0.0f, -outerDepth / 2 + interval);
-		drawNormalizedVertex(-innerRadius, 0.0f, -innerDepth / 2);
+		draw4PointedStarStrip(innerRadius, innerDepth);
 
-		drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+		// PLY: GL_QUAD_STRIP
+		glBegin(GL_QUAD_STRIP);
+		{
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
 
-		drawNormalizedVertex(0.0f, -outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, -innerRadius, -innerDepth / 2);
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
 
-		drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(-outerRadius, 0.0f, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(-innerRadius, 0.0f, -innerDepth / 2);
 
-		drawNormalizedVertex(outerRadius, 0.0f, -outerDepth / 2 + interval);
-		drawNormalizedVertex(innerRadius, 0.0f, -innerDepth / 2);
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
 
-		drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, -outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, -innerRadius, -innerDepth / 2);
 
-		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, -outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, -innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(outerRadius, 0.0f, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(innerRadius, 0.0f, -innerDepth / 2);
+
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
+		}
+		glEnd();
 	}
-	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawKunaiStrip(GLfloat radius, GLfloat depth)
@@ -1180,19 +1304,29 @@ void drawKunaiStrip(GLfloat radius, GLfloat depth)
 	// PLY: GL_QUAD_STRIP
 	glBegin(GL_QUAD_STRIP);
 	{
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, radius, depth / 2);
 
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(-radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, -radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, -radius, depth / 2);
 
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, -depth / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(radius * cos(45 * PI / 180) / 2, radius * sin(45 * PI / 180) / 2, depth / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(0.0f, radius, -depth / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(0.0f, radius, depth / 2);
 	}
 	glEnd();
@@ -1204,43 +1338,62 @@ void drawKunai(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GLfl
 	gluQuadricDrawStyle(quad, GLU_FILL);
 	GLfloat interval = innerDepth - outerDepth;
 
-	glPushMatrix();
+	if (onTexture)
 	{
-		glTranslatef(0.0f, innerRadius + gripLength, 0.0f);
-		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gripRadius, gripRadius, gripLength, kunaiSlices, kunaiStacks);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glPopMatrix();
-
-	glPushMatrix();
 	{
-		glTranslatef(0.0f, 0.0f, interval);
-		drawKunaiStrip(outerRadius, outerDepth);
+		glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, innerRadius + gripLength, 0.0f);
+			glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gripRadius, gripRadius, gripLength, kunaiSlices, kunaiStacks);
+		}
+		glPopMatrix();
+
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, interval);
+			drawKunaiStrip(outerRadius, outerDepth);
+		}
+		glPopMatrix();
+
+		drawKunaiStrip(innerRadius, innerDepth);
+
+		// PLY: GL_QUAD_STRIP
+		glBegin(GL_QUAD_STRIP);
+		{
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
+
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, -outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, -innerRadius, -innerDepth / 2);
+
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
+
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
+		}
+		glEnd();
 	}
-	glPopMatrix();
-
-	drawKunaiStrip(innerRadius, innerDepth);
-
-	// PLY: GL_QUAD_STRIP
-	glBegin(GL_QUAD_STRIP);
-	{
-		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
-
-		drawNormalizedVertex(-outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		drawNormalizedVertex(-innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
-
-		drawNormalizedVertex(0.0f, -outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, -innerRadius, -innerDepth / 2);
-
-		drawNormalizedVertex(outerRadius * cos(45 * PI / 180) / 2, outerRadius * sin(45 * PI / 180) / 2, -outerDepth / 2 + interval);
-		drawNormalizedVertex(innerRadius * cos(45 * PI / 180) / 2, innerRadius * sin(45 * PI / 180) / 2, -innerDepth / 2);
-
-		drawNormalizedVertex(0.0f, outerRadius, -outerDepth / 2 + interval);
-		drawNormalizedVertex(0.0f, innerRadius, -innerDepth / 2);
-	}
-	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void draw4Kunais(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GLfloat innerRadius, GLfloat outerDepth, GLfloat innerDepth, GLfloat intervalx, GLfloat intervaly)
@@ -1286,8 +1439,27 @@ void drawEyeFrame(GLfloat eyeRadius, GLfloat starOuterRadius, GLfloat starInnerR
 	glPushMatrix();
 	{
 		glTranslatef(0.0f, 0.0f, eyeRadius / 2);
-		// PLY: gluSphere()
-		gluSphere(quad, eyeRadius, tubeSlices, tubeStacks);
+
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			if (textureTheme == 1)
+			{
+
+				glBindTexture(GL_TEXTURE_2D, eye2Texture);
+			}
+			else if (textureTheme == 2)
+			{
+				glBindTexture(GL_TEXTURE_2D, damageEyeTexture);
+			}
+
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluSphere()
+			gluSphere(quad, eyeRadius, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 
@@ -1311,36 +1483,57 @@ void drawEyeTube(GLfloat radius, GLfloat height)
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
 
-	// PLY: gluCylinder()
-	gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
-	glPushMatrix();
+	if (onTexture)
 	{
-		glTranslatef(0.0f, 0.0f, height);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glPopMatrix();
-
-	glPushMatrix();
 	{
-		glTranslatef(0.0f, 0.0f, height);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
-	}
-	glPopMatrix();
-
-	// PLY: gluDisk()
-	gluDisk(quad, radius * 3 / 4, radius, tubeSlices, tubeStacks);
-	drawEyeFrame(0.05f, 0.2f, 0.15f, 0.01f, 0.015f, 0.01f, 0.05f, 0.065f, 0.045f, 0.01f, 0.015f, 0.125f, 0.125f);
-
-	glPushMatrix();
-	{
-		glTranslatef(0.0f, 0.0f, height / 6);
+		glBindTexture(GL_TEXTURE_2D, head3Texture);
+		gluQuadricTexture(quad, GL_TRUE);
 		// PLY: gluCylinder()
-		gluCylinder(quad, radius + 0.01, radius + 0.01, height * 5 / 6, tubeSlices, tubeStacks);
+		gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
 
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, height);
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluDisk()
+			gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+		
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, height);
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluDisk()
+			gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
+
+		gluQuadricTexture(quad, GL_TRUE);
 		// PLY: gluDisk()
-		gluDisk(quad, radius, radius + 0.01, tubeSlices, tubeStacks);
+		gluDisk(quad, radius * 3 / 4, radius, tubeSlices, tubeStacks);
+		drawEyeFrame(0.05f, 0.2f, 0.15f, 0.01f, 0.015f, 0.01f, 0.05f, 0.065f, 0.045f, 0.01f, 0.015f, 0.125f, 0.125f);
+	}
+	glDisable(GL_TEXTURE_2D);
+
+	glPushMatrix();
+	{
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glTranslatef(0.0f, 0.0f, height / 6);
+			glBindTexture(GL_TEXTURE_2D, darkGreyMetalTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluCylinder()
+			gluCylinder(quad, radius + 0.01, radius + 0.01, height * 5 / 6, tubeSlices, tubeStacks);
+			// PLY: gluDisk()
+			gluDisk(quad, radius, radius + 0.01, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 }
@@ -1352,13 +1545,18 @@ void drawStandFoot(GLfloat standFootHeight, GLfloat maxStandFootWidth)
 	glPushMatrix();
 	{
 		glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
+
 		// PLY: GL_QUADS
 		glBegin(GL_QUADS);
 		{
 			// Top Face
+			glTexCoord2f(0, 0);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+			glTexCoord2f(0, 1.0);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+			glTexCoord2f(1.0, 1.0);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+			glTexCoord2f(1.0, 0);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
 		}
 		glEnd();
@@ -1367,22 +1565,31 @@ void drawStandFoot(GLfloat standFootHeight, GLfloat maxStandFootWidth)
 		glBegin(GL_TRIANGLE_FAN);
 		{
 			// Center
+			glTexCoord2f(0, 0);
 			drawNormalizedVertex(0.0f, -standFootHeight / 2, 0.0f);
 
 			// Front Face
+			glTexCoord2f(0, 1.0);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+			glTexCoord2f(1.0, 1.0);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
 
 			// Right Face
+			glTexCoord2f(0, 1.0);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
+			glTexCoord2f(0, 0);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
 
 			// Back Face
+			glTexCoord2f(1.0, 1.0);
 			drawNormalizedVertex(maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+			glTexCoord2f(0, 1.0);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
 
 			// Left Face
+			glTexCoord2f(0, 0);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, standFootDepth / 2);
+			glTexCoord2f(0, 1.0);
 			drawNormalizedVertex(-maxStandFootWidth / 2, standFootHeight / 2, -standFootDepth / 2);
 		}
 		glEnd();
@@ -1395,105 +1602,154 @@ void drawStand(GLfloat standHeight)
 	GLfloat standWidth = standHeight / 2;
 	GLfloat standFootHeight = standHeight / 3;
 
-	// PLY: GL_QUADS
-	glBegin(GL_QUADS);
+	if (onTexture)
 	{
-		// Top Face
-		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
-		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
-		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
-		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
-
-		// Bottom Face
-		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
-		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
-		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
-		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glEnd();
-
-	// PLY: GL_TRIANGLES
-	glBegin(GL_TRIANGLES);
 	{
-		// Front Face
-		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
-		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
-		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
+		glBindTexture(GL_TEXTURE_2D, stand1Texture);
+		// PLY: GL_QUADS
+		glBegin(GL_QUADS);
+		{
+			// Top Face
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
 
-		// Front Right Face
-		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
-		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
-		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+			// Bottom Face
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+		}
+		glEnd();
 
-		// Right Face
-		drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
-		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
-		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
+		// PLY: GL_TRIANGLES
+		glBegin(GL_TRIANGLES);
+		{
+			// Front Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
 
-		// Back Right Face
-		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
-		drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
-		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
+			// Front Right Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
 
-		// Back Face
-		drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
-		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
-		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
+			// Right Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(standWidth, standHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
 
-		// Back Left Face
-		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
-		drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
-		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+			// Back Right Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(standWidth, -standFootHeight / 2, 0.0f);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
 
-		// Left Face
-		drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
-		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
-		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+			// Back Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(standWidth, standHeight / 2, standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
 
-		// Front Left Face
-		drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
-		drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
-		drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+			// Back Left Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, standWidth);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+
+			// Left Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-standWidth, standHeight / 2, standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+
+			// Front Left Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(-standWidth, standHeight / 2, -standWidth);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(-standWidth, -standFootHeight / 2, 0.0f);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(0.0f, -standFootHeight / 2, -standWidth);
+		}
+		glEnd();
 	}
-	glEnd();
+	glDisable(GL_TEXTURE_2D);
 
-	// Front Right Stand Foot
-	glPushMatrix();
+	if (onTexture)
 	{
-		glTranslatef(-standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, -standWidth * 10 / 16);
-		glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
-		drawStandFoot(standFootHeight, standWidth * 1.5);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glPopMatrix();
-
-	// Front Left Stand Foot
-	glPushMatrix();
 	{
-		glTranslatef(standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, -standWidth * 10 / 16);
-		glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
-		drawStandFoot(standFootHeight, standWidth * 1.5);
-	}
-	glPopMatrix();
+		glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
 
-	// Back Right Stand Foot
-	glPushMatrix();
-	{
-		glTranslatef(-standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, standWidth * 10 / 16);
-		glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
-		glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
-		drawStandFoot(standFootHeight, standWidth * 1.5);
-	}
-	glPopMatrix();
+		// Front Right Stand Foot
+		glPushMatrix();
+		{
+			glTranslatef(-standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, -standWidth * 10 / 16);
+			glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+			drawStandFoot(standFootHeight, standWidth * 1.5);
+		}
+		glPopMatrix();
 
-	// Back Right Stand Foot
-	glPushMatrix();
-	{
-		glTranslatef(standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, standWidth * 10 / 16);
-		glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
-		glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
-		drawStandFoot(standFootHeight, standWidth * 1.5);
+		// Front Left Stand Foot
+		glPushMatrix();
+		{
+			glTranslatef(standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, -standWidth * 10 / 16);
+			glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
+			drawStandFoot(standFootHeight, standWidth * 1.5);
+		}
+		glPopMatrix();
+
+		// Back Right Stand Foot
+		glPushMatrix();
+		{
+			glTranslatef(-standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, standWidth * 10 / 16);
+			glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
+			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+			drawStandFoot(standFootHeight, standWidth * 1.5);
+		}
+		glPopMatrix();
+
+		// Back Right Stand Foot
+		glPushMatrix();
+		{
+			glTranslatef(standWidth * 10 / 16, -standFootHeight + standFootHeight / 4, standWidth * 10 / 16);
+			glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+			drawStandFoot(standFootHeight, standWidth * 1.5);
+		}
+		glPopMatrix();
 	}
-	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat translatey, GLfloat translatez, GLfloat degree, GLfloat rotatex, GLfloat rotatey, GLfloat rotatez, GLdouble headTrim[4])
@@ -1519,12 +1775,30 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 				glEnable(GL_CLIP_PLANE0);
 				{
 					glClipPlane(GL_CLIP_PLANE0, headTrim);
-					// 2. Translate the head up 'radius - trimRadius', trim 'trimRadius' of the front face
-					glTranslatef(0.0f, radius - trimRadius, 0.0f);
-					// 1. Turn the front face of the head to bottom before trim
-					glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-					// PLY: gluSphere()
-					gluSphere(quad, radius, headSlices, headStacks);
+
+					if (onTexture)
+					{
+						glEnable(GL_TEXTURE_2D);
+					}
+					{
+						if (textureTheme == 1)
+						{
+							glBindTexture(GL_TEXTURE_2D, body2Texture);
+						}
+						else if (textureTheme == 2)
+						{
+							glBindTexture(GL_TEXTURE_2D, damageBodyTexture);
+						}
+
+						// 2. Translate the head up 'radius - trimRadius', trim 'trimRadius' of the front face
+						glTranslatef(0.0f, radius - trimRadius, 0.0f);
+						// 1. Turn the front face of the head to bottom before trim
+						glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+						gluQuadricTexture(quad, GL_TRUE);
+						// PLY: gluSphere()
+						gluSphere(quad, radius, headSlices, headStacks);
+					}
+					glDisable(GL_TEXTURE_2D);
 				}
 				glDisable(GL_CLIP_PLANE0);
 			}
@@ -1581,34 +1855,60 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 				}
 			}
 
-			// PLY: gluSphere()
-			gluSphere(quad, baseRadius, tubeSlices, tubeStacks);
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, bulletTexture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluSphere()
+				gluSphere(quad, baseRadius, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 
 			glPushMatrix();
 			{
-				// C1
-				glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
-				glTranslatef(0.0f, 0.0f, -part1Length);
-				// PLY: gluCylinder()
-				gluCylinder(quad, centerRadius, baseRadius, part1Length, tubeSlices, tubeStacks);
-
-				// S2
-				// PLY: gluSphere()
-				gluSphere(quad, centerRadius, tubeSlices, tubeStacks);
-
-				glPushMatrix();
+				if (onTexture)
 				{
-					// C2
-					glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
-					glTranslatef(0.0f, 0.0f, -part2Length);
-					// PLY: gluCylinder()
-					gluCylinder(quad, topRadius, centerRadius, part2Length, tubeSlices, tubeStacks);
-
-					// S3
-					// PLY: gluSphere()
-					gluSphere(quad, topRadius, tubeSlices, tubeStacks);
+					glEnable(GL_TEXTURE_2D);
 				}
-				glPopMatrix();
+				{
+					// C1
+					glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
+					glTranslatef(0.0f, 0.0f, -part1Length);
+					glBindTexture(GL_TEXTURE_2D, head3Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluCylinder()
+					gluCylinder(quad, centerRadius, baseRadius, part1Length, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, purpleMetalTexture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// S2
+					// PLY: gluSphere()
+					gluSphere(quad, centerRadius, tubeSlices, tubeStacks);
+
+					glPushMatrix();
+					{
+						// C2
+						glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
+						glTranslatef(0.0f, 0.0f, -part2Length);
+						// PLY: gluCylinder()
+						gluCylinder(quad, topRadius, centerRadius, part2Length, tubeSlices, tubeStacks);
+						// S3
+						// PLY: gluSphere()
+						gluSphere(quad, topRadius, tubeSlices, tubeStacks);
+					}
+					glPopMatrix();
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 		}
@@ -1641,153 +1941,298 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 		glPushMatrix();
 		{
 			glTranslatef(-basedRadius, halfLength, 0.0f);
-			// PLY: gluSphere()
-			gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
-			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-			// PLY: gluCylinder()
-			gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
-			// PLY: gluCylinder()
-			gluCylinder(quad, basedRadius, basedRadius * 1.50, basedRadius * 1.25, tubeSlices, tubeStacks);
 
-			glPushMatrix();
+			if (onTexture)
 			{
-				glTranslatef(0.0f, 0.0f, basedRadius * 1.25);
-				// PLY: gluDisk()
-				gluDisk(quad, basedRadius * 1.25, basedRadius * 1.50, tubeSlices, tubeStacks);
+				glEnable(GL_TEXTURE_2D);
 			}
-			glPopMatrix();
+			{
+				glBindTexture(GL_TEXTURE_2D, waistTexture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluSphere()
+				gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
+
+			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, kunaiTexture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluCylinder()
+				gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
+				// PLY: gluCylinder()
+				gluCylinder(quad, basedRadius, basedRadius * 1.50, basedRadius * 1.25, tubeSlices, tubeStacks);
+
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, basedRadius * 1.25);
+					// PLY: gluDisk()
+					gluDisk(quad, basedRadius * 1.25, basedRadius * 1.50, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 
-		// PLY: GL_QUADS
-		glBegin(GL_QUADS);
+		// Upper Palm
+		if (onTexture)
 		{
-			// Front Face
-			drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
-			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
-
-			// Back Face
-			drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
-			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-			drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
-
-			// Left Face
-			drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
-			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-			drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
-
-			// Right Face
-			drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
-
-			// Top Face
-			drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
-			drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
+			glEnable(GL_TEXTURE_2D);
 		}
-		glEnd();
+		{
+			glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
+
+			// PLY: GL_QUADS
+			glBegin(GL_QUADS);
+			{
+				// Front Face
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+
+				// Back Face
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
+
+				// Left Face
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
+
+				// Right Face
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+
+				// Top Face
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(leftBasedRadius, halfLength, basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(leftBasedRadius, halfLength, -basedRadius);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, -basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(rightBasedRadius - basedRadius, halfLength, basedRadius);
+			}
+			glEnd();
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	else
 	{
 		glPushMatrix();
 		{
 			glTranslatef(basedRadius, halfLength, 0.0f);
-			// PLY: gluSphere()
-			gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
-			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-			// PLY: gluCylinder()
-			gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
-			// PLY: gluCylinder()
-			gluCylinder(quad, basedRadius, basedRadius * 1.50, basedRadius * 1.25, tubeSlices, tubeStacks);
 
-			glPushMatrix();
+			if (onTexture)
 			{
-				glTranslatef(0.0f, 0.0f, basedRadius * 1.25);
-				// PLY: gluDisk()
-				gluDisk(quad, basedRadius * 1.25, basedRadius * 1.50, tubeSlices, tubeStacks);
+				glEnable(GL_TEXTURE_2D);
 			}
-			glPopMatrix();
+			{
+				glBindTexture(GL_TEXTURE_2D, waistTexture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluSphere()
+				gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
+
+			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, kunaiTexture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluCylinder()
+				gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
+				// PLY: gluCylinder()
+				gluCylinder(quad, basedRadius, basedRadius * 1.50, basedRadius * 1.25, tubeSlices, tubeStacks);
+
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, basedRadius * 1.25);
+					// PLY: gluDisk()
+					gluDisk(quad, basedRadius * 1.25, basedRadius * 1.50, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
+
+		// Upper Palm
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
+
+			// PLY: GL_QUADS
+			glBegin(GL_QUADS);
+			{
+				// Front Face
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
+
+				// Back Face
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+
+				// Left Face
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+
+				// Right Face
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
+
+				// Top Face
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+			}
+			glEnd();
+		}
+		glDisable(GL_TEXTURE_2D);
+	}
+
+	// Lower Palm
+	if (onTexture)
+	{
+		glEnable(GL_TEXTURE_2D);
+	}
+	{
+		glBindTexture(GL_TEXTURE_2D, fingerTexture);
+
+		// PLY: GL_QUADS
+		glBegin(GL_QUADS);
+		{
+			// Back Face
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+		}
+		glEnd();
+	}
+	glDisable(GL_TEXTURE_2D);
+
+	if (onTexture)
+	{
+		glEnable(GL_TEXTURE_2D);
+	}
+	{
+		glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
 
 		// PLY: GL_QUADS
 		glBegin(GL_QUADS);
 		{
 			// Front Face
-			drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
+			glTexCoord2f(0, 1.0);
 			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
+			glTexCoord2f(1.0, 1.0);
 			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
-
-			// Back Face
-			drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
-			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
 
 			// Left Face
-			drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
+			glTexCoord2f(0, 1.0);
 			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
+			glTexCoord2f(1.0, 1.0);
 			drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-			drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
 
 			// Right Face
-			drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+			glTexCoord2f(0, 1.0);
 			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
+			glTexCoord2f(1.0, 1.0);
 			drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
 
-			// Top Face
-			drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, basedRadius);
-			drawNormalizedVertex(leftBasedRadius + basedRadius, halfLength, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength, -basedRadius);
-			drawNormalizedVertex(rightBasedRadius, halfLength, basedRadius);
+			// Bottom Face
+			glTexCoord2f(0, 1.0);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
+			glTexCoord2f(0, 0);
+			drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
+			glTexCoord2f(1.0, 0);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
+			glTexCoord2f(1.0, 1.0);
+			drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
 		}
 		glEnd();
 	}
-
-	// Palm
-	// PLY: GL_QUADS
-	glBegin(GL_QUADS);
-	{
-		// Front Face
-		drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-		drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
-		drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
-		drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-
-		// Back Face
-		drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-		drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
-		drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
-		drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-
-		// Left Face
-		drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, basedRadius);
-		drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
-		drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
-		drawNormalizedVertex(leftBasedRadius, halfLength * 2 / 3, -basedRadius);
-
-		// Right Face
-		drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, basedRadius);
-		drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
-		drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
-		drawNormalizedVertex(rightBasedRadius, halfLength * 2 / 3, -basedRadius);
-
-		// Bottom Face
-		drawNormalizedVertex(leftBasedRadius, 0.0f, basedRadius);
-		drawNormalizedVertex(leftBasedRadius, 0.0f, -basedRadius);
-		drawNormalizedVertex(rightBasedRadius, 0.0f, -basedRadius);
-		drawNormalizedVertex(rightBasedRadius, 0.0f, basedRadius);
-	}
-	glEnd();
+	glDisable(GL_TEXTURE_2D);
 
 	// Middle Finger
 	drawFinger(basedRadius, topRadius, halfLength, false, isRight);
@@ -1856,14 +2301,22 @@ void drawArmorPlane(GLfloat radius, GLfloat bulge)
 	// PLY: GL_QUADS
 	glBegin(GL_QUADS);
 	{
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(radius * cos(120 * PI / 180) * 3 / 4, radius * sin(120 * PI / 180) * 3 / 4, bulge / 2);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(radius * cos(225 * PI / 180) * 3 / 4, radius * sin(225 * PI / 180) * 3 / 4, bulge / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
 
+		glTexCoord2f(1.0, 0);
 		drawNormalizedVertex(radius * cos(90 * PI / 180), radius * sin(90 * PI / 180), -bulge / 2);
+		glTexCoord2f(1.0, 1.0);
 		drawNormalizedVertex(radius * cos(270 * PI / 180) * 3 / 4, radius * sin(270 * PI / 180) * 3 / 4, -bulge / 2);
+		glTexCoord2f(0, 1.0);
 		drawNormalizedVertex(radius * cos(315 * PI / 180) * 3 / 4, radius * sin(315 * PI / 180) * 3 / 4, bulge / 2);
+		glTexCoord2f(0, 0);
 		drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, bulge / 2);
 	}
 	glEnd();
@@ -1878,41 +2331,64 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 	{
 		glTranslatef(0.0f, 0.0f, totalDepth / 2);
 
-		// PLY: GL_QUAD_STRIP
-		glBegin(GL_QUAD_STRIP);
+		if (onTexture)
 		{
-			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
-			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
-
-			drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
-			drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
-
-			drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
-			drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
-
-			drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 5);
-			drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 10);
-
-			drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
-			drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
-
-			drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
-			drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
-
-			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
-			drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
+			glEnable(GL_TEXTURE_2D);
 		}
-		glEnd();
-
-		// Armor Faces
-		drawArmorPlane(radius, totalDepth * 1 / 5);
-
-		glPushMatrix();
 		{
-			glTranslatef(0.0f, 0.0f, -totalDepth * 1 / 10);
+			glBindTexture(GL_TEXTURE_2D, leg5Texture);
+
+			// PLY: GL_QUAD_STRIP
+			glBegin(GL_QUAD_STRIP);
+			{
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
+
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(-radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(-radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 5);
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(0.0f, -radius * 3 / 4, -totalDepth * 1 / 10);
+
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, 0.0f);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(radius * cos(45 * PI / 180) * 3 / 4, -radius * sin(45 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, 0.0f);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(radius * cos(60 * PI / 180) * 3 / 4, radius * sin(60 * PI / 180) * 3 / 4, totalDepth * 1 / 10);
+
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 5);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(0.0f, radius, -totalDepth * 1 / 10);
+			}
+			glEnd();
+
+			// Armor Faces
 			drawArmorPlane(radius, totalDepth * 1 / 5);
+
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, -totalDepth * 1 / 10);
+				drawArmorPlane(radius, totalDepth * 1 / 5);
+			}
+			glPopMatrix();
 		}
-		glPopMatrix();
+		glDisable(GL_TEXTURE_2D);
 
 		// Spikes
 		glPushMatrix();
@@ -1949,55 +2425,83 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 				glPushMatrix();
 				{
 					glTranslatef(0.0f, 0.0f, -totalDepth / 5);
-					// PLY: gluSphere()
-					gluSphere(quad, radius / 4, tubeSlices, tubeStacks);
+
+					if (onTexture)
+					{
+						glEnable(GL_TEXTURE_2D);
+					}
+					{
+						glBindTexture(GL_TEXTURE_2D, eye2Texture);
+						// PLY: gluSphere()
+						gluSphere(quad, radius / 4, tubeSlices, tubeStacks);
+					}
+					glDisable(GL_TEXTURE_2D);
 				}
 				glPopMatrix();
 
-				glPushMatrix();
+				if (onTexture)
 				{
-					glTranslatef(0.0f, 0.0f, -totalDepth * 4 / 5);
-					glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
-					glTranslatef(0.0f, 0.0f, totalDepth * 4 / 5);
-					// PLY: gluCylinder()
-					gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+					glEnable(GL_TEXTURE_2D);
 				}
-				glPopMatrix();
+				{
+					glBindTexture(GL_TEXTURE_2D, fourBluePlaneTexture);
+					gluQuadricTexture(quad, GL_TRUE);
 
-				glPushMatrix();
-				{
-					glTranslatef(0.0f, 0.0f, -totalDepth * 4 / 5);
-					glRotatef(-30.0f, 1.0f, 0.0f, 0.0f);
-					glTranslatef(0.0f, 0.0f, totalDepth * 4 / 5);
-					// PLY: gluCylinder()
-					gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
-				}
-				glPopMatrix();
+					glPushMatrix();
+					{
+						glTranslatef(0.0f, 0.0f, -totalDepth * 4 / 5);
+						glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
+						glTranslatef(0.0f, 0.0f, totalDepth * 4 / 5);
+						// PLY: gluCylinder()
+						gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+					}
+					glPopMatrix();
 
-				glPushMatrix();
-				{
-					glTranslatef(0.0f, 0.0f, -totalDepth * 4 / 5);
-					glRotatef(30.0f, 0.0f, 1.0f, 0.0f);
-					glTranslatef(0.0f, 0.0f, totalDepth * 4 / 5);
-					// PLY: gluCylinder()
-					gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
-				}
-				glPopMatrix();
+					glPushMatrix();
+					{
+						glTranslatef(0.0f, 0.0f, -totalDepth * 4 / 5);
+						glRotatef(-30.0f, 1.0f, 0.0f, 0.0f);
+						glTranslatef(0.0f, 0.0f, totalDepth * 4 / 5);
+						// PLY: gluCylinder()
+						gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+					}
+					glPopMatrix();
 
-				glPushMatrix();
-				{
-					glTranslatef(0.0f, 0.0f, -totalDepth * 4 / 5);
-					glRotatef(-30.0f, 0.0f, 1.0f, 0.0f);
-					glTranslatef(0.0f, 0.0f, totalDepth * 4 / 5);
-					// PLY: gluCylinder()
-					gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+					glPushMatrix();
+					{
+						glTranslatef(0.0f, 0.0f, -totalDepth * 4 / 5);
+						glRotatef(30.0f, 0.0f, 1.0f, 0.0f);
+						glTranslatef(0.0f, 0.0f, totalDepth * 4 / 5);
+						// PLY: gluCylinder()
+						gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+					}
+					glPopMatrix();
+
+					glPushMatrix();
+					{
+						glTranslatef(0.0f, 0.0f, -totalDepth * 4 / 5);
+						glRotatef(-30.0f, 0.0f, 1.0f, 0.0f);
+						glTranslatef(0.0f, 0.0f, totalDepth * 4 / 5);
+						// PLY: gluCylinder()
+						gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+					}
+					glPopMatrix();
 				}
-				glPopMatrix();
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 
-			// PLY: gluCylinder()
-			gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, bluePlaneTexture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluCylinder()
+				gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 	}
@@ -2034,18 +2538,39 @@ void drawWheel(GLfloat radius, GLfloat height)
 		{
 			glTranslatef(-height / 2, 0.0f, 0.0f);
 			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-			// PLY: gluDisk()
-			gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
-			// PLY: gluCylinder()
-			gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
 
-			glPushMatrix();
+			if (onTexture)
 			{
-				glTranslatef(0.0f, 0.0f, height);
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, metal5Texture);
+				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluDisk()
 				gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+
 			}
-			glPopMatrix();
+			glDisable(GL_TEXTURE_2D);
+
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, nailTexture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluCylinder()
+				gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
+
+				glPushMatrix();
+				{
+					glTranslatef(0.0f, 0.0f, height);
+					// PLY: gluDisk()
+					gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
+				}
+				glPopMatrix();
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 	}
@@ -2061,33 +2586,43 @@ void drawNail(GLfloat radius, GLfloat height)
 	{
 		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 
-		glPushMatrix();
+		if (onTexture)
 		{
-			glTranslatef(0.0f, 0.0f, -height * 9 / 16);
-			// PLY: gluDisk()
-			gluDisk(quad, 0.0f, radius * 0.9, tubeSlices, tubeStacks);
-			// PLY: gluCylinder()
-			gluCylinder(quad, radius * 0.9, radius * 0.9, height / 16, tubeSlices, tubeStacks);
+			glEnable(GL_TEXTURE_2D);
 		}
-		glPopMatrix();
+		{
+			glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+			gluQuadricTexture(quad, GL_TRUE);
 
-		glPushMatrix();
-		{
-			glTranslatef(0.0f, 0.0f, -height / 2);
-			// PLY: gluDisk()
-			gluDisk(quad, 0.0f, radius * 1.1, tubeSlices, tubeStacks);
-			// PLY: gluCylinder()
-			gluCylinder(quad, radius * 1.1, radius * 1.1, height / 6, tubeSlices, tubeStacks);
-		}
-		glPopMatrix();
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, -height * 9 / 16);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, radius * 0.9, tubeSlices, tubeStacks);
+				// PLY: gluCylinder()
+				gluCylinder(quad, radius * 0.9, radius * 0.9, height / 16, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
 
-		glPushMatrix();
-		{
-			glTranslatef(0.0f, 0.0f, -height / 3);
-			// PLY: gluDisk()
-			gluDisk(quad, radius, radius * 1.1, tubeSlices, tubeStacks);
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, -height / 2);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, radius * 1.1, tubeSlices, tubeStacks);
+				// PLY: gluCylinder()
+				gluCylinder(quad, radius * 1.1, radius * 1.1, height / 6, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
+
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, -height / 3);
+				// PLY: gluDisk()
+				gluDisk(quad, radius, radius * 1.1, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
 		}
-		glPopMatrix();
+		glDisable(GL_TEXTURE_2D);
 
 		glPushMatrix();
 		{
@@ -2097,8 +2632,17 @@ void drawNail(GLfloat radius, GLfloat height)
 		}
 		glPopMatrix();
 
-		// PLY: gluCylinder()
-		gluCylinder(quad, radius / 2, radius / 2, height / 4, tubeSlices, tubeStacks);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluCylinder()
+			gluCylinder(quad, radius / 2, radius / 2, height / 4, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 
 		glPushMatrix();
 		{
@@ -2117,99 +2661,117 @@ void drawGun(GLfloat gunLength)
 	gluQuadricDrawStyle(quad, GLU_FILL);
 	GLfloat gunHeight = gunLength / 3;
 
-	// Top Front Barrel
-	glPushMatrix();
+	if (onTexture)
 	{
-		glTranslatef(0.0f, 0.0f, -gunLength * 5 / 8);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength * 7 / 8, tubeSlices, tubeStacks);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glPopMatrix();
+	{
+		glBindTexture(GL_TEXTURE_2D, metalTexture);
+		gluQuadricTexture(quad, GL_TRUE);
+		// Top Front Barrel
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, -gunLength * 5 / 8);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength * 7 / 8, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 
-	// Middle Top Front Barrel Disk
-	glPushMatrix();
-	{
-		glTranslatef(0.0f, 0.0f, -gunLength * 3 / 8);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
-	}
-	glPopMatrix();
+		// Middle Top Front Barrel Disk
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, -gunLength * 3 / 8);
+			// PLY: gluDisk()
+			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 
-	// Back Top Front Barrel Disk
-	glPushMatrix();
-	{
-		glTranslatef(0.0f, 0.0f, gunLength / 4);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
-	}
-	glPopMatrix();
+		// Back Top Front Barrel Disk
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, 0.0f, gunLength / 4);
+			// PLY: gluDisk()
+			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 
-	// Bottom Front Barrel
-	glPushMatrix();
-	{
-		glTranslatef(0.0f, -gunHeight / 4, -gunLength / 4);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunHeight / 8, gunHeight / 8, gunLength / 2, tubeSlices, tubeStacks);
-	}
-	glPopMatrix();
+		// Bottom Front Barrel
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, -gunHeight / 4, -gunLength / 4);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunHeight / 8, gunHeight / 8, gunLength / 2, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 
-	// Middle Bottom Front Barrel Disk
-	glPushMatrix();
-	{
-		glTranslatef(0.0f, -gunHeight / 4, -gunLength * 3 / 16);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, gunHeight / 8, tubeSlices, tubeStacks);
-	}
-	glPopMatrix();
+		// Middle Bottom Front Barrel Disk
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, -gunHeight / 4, -gunLength * 3 / 16);
+			// PLY: gluDisk()
+			gluDisk(quad, 0.0f, gunHeight / 8, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 
-	// Back Bottom Front Barrel Disk
-	glPushMatrix();
-	{
-		glTranslatef(0.0f, -gunHeight / 4, gunLength / 4);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, gunHeight / 8, tubeSlices, tubeStacks);
+		// Back Bottom Front Barrel Disk
+		glPushMatrix();
+		{
+			glTranslatef(0.0f, -gunHeight / 4, gunLength / 4);
+			// PLY: gluDisk()
+			gluDisk(quad, 0.0f, gunHeight / 8, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 	}
-	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
 
-	// Outer Trigger
-	glPushMatrix();
+	if (onTexture)
 	{
-		glTranslatef(-gunHeight / 4, -gunHeight / 4, gunLength / 8);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunLength / 8, gunLength / 8, gunHeight / 2, tubeSlices, tubeStacks);
+		glEnable(GL_TEXTURE_2D);
 	}
-	glPopMatrix();
+	{
+		glBindTexture(GL_TEXTURE_2D, kunai2Texture);
+		gluQuadricTexture(quad, GL_TRUE);
+		// Outer Trigger
+		glPushMatrix();
+		{
+			glTranslatef(-gunHeight / 4, -gunHeight / 4, gunLength / 8);
+			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunLength / 8, gunLength / 8, gunHeight / 2, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 
-	// Inner Trigger
-	glPushMatrix();
-	{
-		glTranslatef(-gunHeight / 4, -gunHeight / 4 + 0.0015f, gunLength / 8);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunLength / 8 - 0.0015, gunLength / 8 - 0.0015, gunHeight / 2, tubeSlices, tubeStacks);
-	}
-	glPopMatrix();
+		// Inner Trigger
+		glPushMatrix();
+		{
+			glTranslatef(-gunHeight / 4, -gunHeight / 4 + 0.0015f, gunLength / 8);
+			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunLength / 8 - 0.0015, gunLength / 8 - 0.0015, gunHeight / 2, tubeSlices, tubeStacks);
+		}
+		glPopMatrix();
 
-	// Right Trigger Disk
-	glPushMatrix();
-	{
-		glTranslatef(-gunHeight / 4, -gunHeight / 4, gunLength / 8);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-		// PLY: gluPartialDisk()
-		gluPartialDisk(quad, gunLength / 8 - 0.0015, gunLength / 8, tubeSlices, tubeStacks, 90.0f, 270.0f);
-	}
-	glPopMatrix();
+		// Right Trigger Disk
+		glPushMatrix();
+		{
+			glTranslatef(-gunHeight / 4, -gunHeight / 4, gunLength / 8);
+			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+			// PLY: gluPartialDisk()
+			gluPartialDisk(quad, gunLength / 8 - 0.0015, gunLength / 8, tubeSlices, tubeStacks, 90.0f, 270.0f);
+		}
+		glPopMatrix();
 
-	// Left Trigger Disk
-	glPushMatrix();
-	{
-		glTranslatef(gunHeight / 4, -gunHeight / 4, gunLength / 8);
-		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-		// PLY: gluPartialDisk()
-		gluPartialDisk(quad, gunLength / 8 - 0.0015, gunLength / 8, tubeSlices, tubeStacks, 90.0f, 270.0f);
+		// Left Trigger Disk
+		glPushMatrix();
+		{
+			glTranslatef(gunHeight / 4, -gunHeight / 4, gunLength / 8);
+			glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+			// PLY: gluPartialDisk()
+			gluPartialDisk(quad, gunLength / 8 - 0.0015, gunLength / 8, tubeSlices, tubeStacks, 90.0f, 270.0f);
+		}
+		glPopMatrix();
 	}
-	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
 
 	// Handle
 	glPushMatrix();
@@ -2217,11 +2779,32 @@ void drawGun(GLfloat gunLength)
 		glTranslatef(0.0f, -gunHeight * 7 / 16, gunHeight * 7 / 16 + gunLength / 32);
 		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 		glTranslatef(0.0f, 0.0f, -gunHeight * 7 / 16);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunLength / 16, gunLength / 16, gunHeight * 7 / 8, tubeSlices, tubeStacks);
+
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, metalTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunLength / 16, gunLength / 16, gunHeight * 7 / 8, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
+
 		glTranslatef(0.0f, 0.0f, gunHeight * 7 / 8);
-		// PLY: gluSphere()
-		gluSphere(quad, gunLength / 16, tubeSlices, tubeStacks);
+
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, metal5Texture);
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluSphere()
+			gluSphere(quad, gunLength / 16, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 
@@ -2257,36 +2840,77 @@ void drawGun(GLfloat gunLength)
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, -gunLength / 10 + gunHeight / 5);
-				// PLY: gluSphere()
-				gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
-				// PLY: gluCylinder()
-				gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, bulletTexture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluSphere()
+					gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluCylinder()
+					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, gunLength / 10);
-				// PLY: gluDisk()
-				gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluDisk()
+					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 		}
 		glPopMatrix();
 
 		glTranslatef(0.0f, 0.0f, -gunLength / 8);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
 
-		glPushMatrix();
+		if (onTexture)
 		{
-			glTranslatef(0.0f, 0.0f, gunLength / 4);
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, gunMegazineTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+
 			// PLY: gluDisk()
 			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
+
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, gunLength / 4);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
 		}
-		glPopMatrix();
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 
@@ -2320,36 +2944,77 @@ void drawGun(GLfloat gunLength)
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, -gunLength / 10 + gunHeight / 5);
-				// PLY: gluSphere()
-				gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
-				// PLY: gluCylinder()
-				gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, bulletTexture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluSphere()
+					gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluCylinder()
+					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, gunLength / 10);
-				// PLY: gluDisk()
-				gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluDisk()
+					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 		}
 		glPopMatrix();
 
 		glTranslatef(0.0f, 0.0f, -gunLength / 8);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
 
-		glPushMatrix();
+		if (onTexture)
 		{
-			glTranslatef(0.0f, 0.0f, gunLength / 4);
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, gunMegazineTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+
 			// PLY: gluDisk()
 			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
+
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, gunLength / 4);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
 		}
-		glPopMatrix();
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 
@@ -2383,36 +3048,77 @@ void drawGun(GLfloat gunLength)
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, -gunLength / 10 + gunHeight / 5);
-				// PLY: gluSphere()
-				gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
-				// PLY: gluCylinder()
-				gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, bulletTexture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluSphere()
+					gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluCylinder()
+					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, gunLength / 10);
-				// PLY: gluDisk()
-				gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluDisk()
+					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 		}
 		glPopMatrix();
 
 		glTranslatef(0.0f, 0.0f, -gunLength / 8);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
 
-		glPushMatrix();
+		if (onTexture)
 		{
-			glTranslatef(0.0f, 0.0f, gunLength / 4);
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, gunMegazineTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+
 			// PLY: gluDisk()
 			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
+
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, gunLength / 4);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
 		}
-		glPopMatrix();
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 
@@ -2446,36 +3152,77 @@ void drawGun(GLfloat gunLength)
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, -gunLength / 10 + gunHeight / 5);
-				// PLY: gluSphere()
-				gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
-				// PLY: gluCylinder()
-				gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, bulletTexture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluSphere()
+					gluSphere(quad, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluCylinder()
+					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, gunLength / 10);
-				// PLY: gluDisk()
-				gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluDisk()
+					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 		}
 		glPopMatrix();
 
 		glTranslatef(0.0f, 0.0f, -gunLength / 8);
-		// PLY: gluDisk()
-		gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
-		// PLY: gluCylinder()
-		gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
 
-		glPushMatrix();
+		if (onTexture)
 		{
-			glTranslatef(0.0f, 0.0f, gunLength / 4);
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, gunMegazineTexture);
+			gluQuadricTexture(quad, GL_TRUE);
+
 			// PLY: gluDisk()
 			gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			// PLY: gluCylinder()
+			gluCylinder(quad, gunHeight / 4, gunHeight / 4, gunLength / 4, tubeSlices, tubeStacks);
+
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, 0.0f, gunLength / 4);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, gunHeight / 4, tubeSlices, tubeStacks);
+			}
+			glPopMatrix();
 		}
-		glPopMatrix();
+		glDisable(GL_TEXTURE_2D);
 	}
 	glPopMatrix();
 }
@@ -2496,101 +3243,204 @@ void drawShoulder(GLfloat shoulderHeight, GLfloat armorDepth, boolean isRight)
 		glPushMatrix();
 		{
 			glTranslatef(-shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, 0.0f);
-			// PLY: gluSphere()
-			gluSphere(quad, shoulderHeight * 3 / 10, tubeSlices, tubeStacks);
+
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, metal5Texture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluSphere()
+				gluSphere(quad, shoulderHeight * 3 / 10, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 		}
 		glPopMatrix();
 
-		// PLY: GL_QUADS
-		glBegin(GL_QUADS);
+		if (onTexture)
 		{
-			// Top Face
-			drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, shoulderHeight * 3 / 8);
-			drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, -shoulderHeight * 3 / 8);
-			drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, -shoulderHeight * 3 / 8);
-			drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, shoulderHeight * 3 / 8);
-
-			// Front Top Slope
-			drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, -shoulderHeight * 3 / 8);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, -shoulderHeight * 3 / 8);
-
-			// Back Top Slope
-			drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, shoulderHeight * 3 / 8);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, shoulderHeight * 3 / 8);
-
-			// Left Top Slope
-			drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, shoulderHeight * 3 / 8);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, shoulderHeight / 2);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, -shoulderHeight / 2);
-			drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, -shoulderHeight * 3 / 8);
-
-			// Left Face
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, shoulderHeight / 2);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, shoulderHeight / 2);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, -shoulderHeight / 2);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, -shoulderHeight / 2);
-
-			// Right Bottom Slope
-			drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, shoulderHeight / 2);
-
-			// Bottom Face
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, shoulderHeight / 2);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, shoulderHeight / 2);
+			glEnable(GL_TEXTURE_2D);
 		}
-		glEnd();
-
-		// PLY: GL_POLYGON
-		glBegin(GL_POLYGON);
 		{
-			// Front Face
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, -shoulderHeight / 2);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, -shoulderHeight / 2);
-		}
-		glEnd();
+			if (textureTheme == 1)
+			{
+				glBindTexture(GL_TEXTURE_2D, shoulder2Texture);
+			}
+			else if (textureTheme == 2)
+			{
 
-		// PLY: GL_POLYGON
-		glBegin(GL_POLYGON);
-		{
-			// Back Face
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, shoulderHeight / 2);
-			drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, shoulderHeight / 2);
-		}
-		glEnd();
+				glBindTexture(GL_TEXTURE_2D, damageShoulderTexture);
+			}
 
-		// PLY: GL_POLYGON
-		glBegin(GL_POLYGON);
-		{
-			// Right Top Slope
-			drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, -shoulderHeight * 3 / 8);
-			drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, -shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, shoulderHeight / 2);
-			drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, shoulderHeight * 3 / 8);
+			// PLY: GL_QUADS
+			glBegin(GL_QUADS);
+			{
+				// Top Face
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, shoulderHeight * 3 / 8);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, -shoulderHeight * 3 / 8);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, -shoulderHeight * 3 / 8);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, shoulderHeight * 3 / 8);
+
+				// Front Top Slope
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, -shoulderHeight * 3 / 8);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, -shoulderHeight / 2);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, -shoulderHeight / 2);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, -shoulderHeight * 3 / 8);
+
+				// Back Top Slope
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, shoulderHeight * 3 / 8);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, shoulderHeight / 2);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, shoulderHeight / 2);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, shoulderHeight * 3 / 8);
+
+				// Left Top Slope
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, shoulderHeight * 3 / 8);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, shoulderHeight / 2);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, -shoulderHeight / 2);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(-shoulderHeight / 2, shoulderHeight / 2, -shoulderHeight * 3 / 8);
+
+				// Left Face
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, shoulderHeight / 2);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, shoulderHeight / 2);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, -shoulderHeight / 2);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, -shoulderHeight / 2);
+
+				// Right Bottom Slope
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, -shoulderHeight / 2);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, -shoulderHeight / 2);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, shoulderHeight / 2);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, shoulderHeight / 2);
+
+				// Bottom Face
+				glTexCoord2f(0, 0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, shoulderHeight / 2);
+				glTexCoord2f(0, 1.0);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, -shoulderHeight / 2);
+				glTexCoord2f(1.0, 1.0);
+				drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, -shoulderHeight / 2);
+				glTexCoord2f(1.0, 0);
+				drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, shoulderHeight / 2);
+			}
+			glEnd();
 		}
-		glEnd();
+		glDisable(GL_TEXTURE_2D);
+
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			if (textureTheme == 1)
+			{
+				glBindTexture(GL_TEXTURE_2D, head3Texture);
+			}
+			else if (textureTheme == 2)
+			{
+
+				glBindTexture(GL_TEXTURE_2D, damageLowerShoulderTexture);
+			}
+
+			// PLY: GL_POLYGON
+			glBegin(GL_POLYGON);
+			{
+				// Front Face
+				glTexCoord2f(0.0f, 1.0f);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, -shoulderHeight / 2);
+				glTexCoord2f(0.0f, 0.0f);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, -shoulderHeight / 2);
+				glTexCoord2f(0.75f, 0.0f);
+				drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, -shoulderHeight / 2);
+				glTexCoord2f(1.0f, 0.5f);
+				drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, -shoulderHeight / 2);
+				glTexCoord2f(0.85f, 1.0f);
+				drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, -shoulderHeight / 2);
+			}
+			glEnd();
+
+			// PLY: GL_POLYGON
+			glBegin(GL_POLYGON);
+			{
+				// Back Face
+				glTexCoord2f(0.0f, 1.0f);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, shoulderHeight * 1 / 6, shoulderHeight / 2);
+				glTexCoord2f(0.0f, 0.0f);
+				drawNormalizedVertex(-shoulderHeight * 3 / 4, -shoulderHeight / 2, shoulderHeight / 2);
+				glTexCoord2f(0.75f, 0.0f);
+				drawNormalizedVertex(shoulderHeight / 4, -shoulderHeight / 2, shoulderHeight / 2);
+				glTexCoord2f(1.0f, 0.5f);
+				drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, shoulderHeight / 2);
+				glTexCoord2f(0.85f, 1.0f);
+				drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, shoulderHeight / 2);
+			}
+			glEnd();
+		}
+		glDisable(GL_TEXTURE_2D);
+
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			if (textureTheme == 1)
+			{
+				glBindTexture(GL_TEXTURE_2D, shoulder2Texture);
+			}
+			else if (textureTheme == 2)
+			{
+
+				glBindTexture(GL_TEXTURE_2D, damageShoulderTexture);
+			}
+
+			// PLY: GL_POLYGON
+			glBegin(GL_POLYGON);
+			{
+				// Right Top Slope
+				glTexCoord2f(0.0f, 1.0f);
+				drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, -shoulderHeight * 3 / 8);
+				glTexCoord2f(0.0f, 0.5f);
+				drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, -shoulderHeight / 2);
+				glTexCoord2f(0.0f, 0.0f);
+				drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, -shoulderHeight / 2);
+				glTexCoord2f(1.0f, 0.0f);
+				drawNormalizedVertex(shoulderHeight * 3 / 4, -shoulderHeight * 1 / 6, shoulderHeight / 2);
+				glTexCoord2f(1.0f, 0.5f);
+				drawNormalizedVertex(shoulderHeight / 2, shoulderHeight * 1 / 6, shoulderHeight / 2);
+				glTexCoord2f(1.0f, 1.0f);
+				drawNormalizedVertex(shoulderHeight / 4, shoulderHeight / 2, shoulderHeight * 3 / 8);
+			}
+			glEnd();
+		}
+		glDisable(GL_TEXTURE_2D);
 
 		// 4 Guns
 		glPushMatrix();
 		{
-			glRotatef(rotateGunX, 1.0f, 0.0f, 0.0f);
 			glRotatef(rotateGunY, 0.0f, 1.0f, 0.0f);
-			glRotatef(rotateGunZ, 0.0f, 0.0f, 1.0f);
 
 			if (isRight)
 			{
@@ -2745,8 +3595,17 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 			glRotatef(restSpeed, 0.0f, 1.0f, 0.0f);
 		}
 
-		// PLY: gluSphere()
-		gluSphere(quad, baseRadius, tubeSlices, tubeStacks);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			glBindTexture(GL_TEXTURE_2D, metal5Texture);
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluSphere()
+			gluSphere(quad, baseRadius, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 
 		//C1
 		glRotatef(rotateUpperArmJointX, 1.0f, 0.0f, 0.0f);
@@ -2758,16 +3617,43 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 			glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
 		}
 
-		// PLY: gluCylinder()
-		gluCylinder(quad, baseRadius, centerRadius, partLength * 3 / 4, tubeSlices, tubeStacks);
+		if (onTexture)
+		{
+			glEnable(GL_TEXTURE_2D);
+		}
+		{
+			if (textureTheme == 1)
+			{
+				glBindTexture(GL_TEXTURE_2D, leg5Texture);
+			}
+			else if (textureTheme == 2)
+			{
+				glBindTexture(GL_TEXTURE_2D, damageLegTexture);
+			}
+
+			gluQuadricTexture(quad, GL_TRUE);
+			// PLY: gluCylinder()
+			gluCylinder(quad, baseRadius, centerRadius, partLength * 3 / 4, tubeSlices, tubeStacks);
+		}
+		glDisable(GL_TEXTURE_2D);
 
 		glPushMatrix();
 		{
 			glTranslatef(0.0f, 0.0f, partLength * 3 / 4);
 			glRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
-			// S2
-			// PLY: gluSphere()
-			gluSphere(quad, centerRadius, tubeSlices, tubeStacks);
+
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				glBindTexture(GL_TEXTURE_2D, metal5Texture);
+				gluQuadricTexture(quad, GL_TRUE);
+				// S2
+				// PLY: gluSphere()
+				gluSphere(quad, centerRadius, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 
 			// C2
 			if (isRight)
@@ -2783,23 +3669,59 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 				glRotatef(-rotateElbowJointZ, 0.0f, 0.0f, 1.0f);
 			}
 
-			// PLY: gluCylinder()
-			gluCylinder(quad, centerRadius, topRadius, partLength, tubeSlices, tubeStacks);
+			if (onTexture)
+			{
+				glEnable(GL_TEXTURE_2D);
+			}
+			{
+				if (textureTheme == 1)
+				{
+					glBindTexture(GL_TEXTURE_2D, leg5Texture);
+				}
+				else if (textureTheme == 2)
+				{
+					glBindTexture(GL_TEXTURE_2D, damageLegTexture);
+				}
+
+				gluQuadricTexture(quad, GL_TRUE);
+				// PLY: gluCylinder()
+				gluCylinder(quad, centerRadius, topRadius, partLength, tubeSlices, tubeStacks);
+			}
+			glDisable(GL_TEXTURE_2D);
 
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, partLength);
-				// S3
-				// PLY: gluSphere()
-				gluSphere(quad, topRadius, tubeSlices, tubeStacks);
+
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// S3
+					// PLY: gluSphere()
+					gluSphere(quad, topRadius, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 
 				// C3
 				glRotatef(rotateWristJointX, 1.0f, 0.0f, 0.0f);
 				glRotatef(rotateWristJointY, 0.0f, 1.0f, 0.0f);
 				glRotatef(rotateWristJointZ, 0.0f, 0.0f, 1.0f);
 
-				// PLY: gluCylinder()
-				gluCylinder(quad, topRadius, 0.0f, partLength / 4, tubeSlices, tubeStacks);
+				if (onTexture)
+				{
+					glEnable(GL_TEXTURE_2D);
+				}
+				{
+					glBindTexture(GL_TEXTURE_2D, legTipTexture);
+					gluQuadricTexture(quad, GL_TRUE);
+					// PLY: gluCylinder()
+					gluCylinder(quad, topRadius, 0.0f, partLength / 4, tubeSlices, tubeStacks);
+				}
+				glDisable(GL_TEXTURE_2D);
 			}
 			glPopMatrix();
 		}
@@ -2887,7 +3809,7 @@ void drawLimbs(GLfloat shoulderHeight, GLfloat armorDepth, GLfloat armLength, GL
 	glPopMatrix();
 }
 
-void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius, GLfloat fingerTipRadius, GLfloat plamLength)
+void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius, GLfloat fingerTipRadius, GLfloat palmLength)
 {
 	GLfloat trimRadius = mainRadius / 13;
 	GLdouble headTrim[4] = { 0.0, 1.0, 0.0, 0.0 };
@@ -3006,15 +3928,15 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, punchSpeed);
-				glTranslatef(mainRadius / 2, mainRadius * 2.5, -plamLength);
-				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
-				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
-				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
-				glTranslatef(-mainRadius / 2, -mainRadius * 2.5, plamLength);
-				glTranslatef(mainRadius / 2, mainRadius * 2.5, -plamLength);
+				glTranslatef(mainRadius / 2, mainRadius * 2.5, -palmLength);
+				glRotatef(rotatePalmX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotatePalmY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotatePalmZ, 0.0f, 0.0f, 1.0f);
+				glTranslatef(-mainRadius / 2, -mainRadius * 2.5, palmLength);
+				glTranslatef(mainRadius / 2, mainRadius * 2.5, -palmLength);
 				glRotatef(90.0, 1.0, 0.0, 0.0);
 				glRotatef(180.0, 0.0, 1.0, 0.0);
-				drawPalm(wristJointRadius, fingerTipRadius, plamLength, true);
+				drawPalm(wristJointRadius, fingerTipRadius, palmLength, true);
 			}
 			glPopMatrix();
 
@@ -3022,15 +3944,15 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, 0.0f, -punchSpeed);
-				glTranslatef(-mainRadius / 2, mainRadius * 2.5, -plamLength);
-				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
-				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
-				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
-				glTranslatef(mainRadius / 2, -mainRadius * 2.5, plamLength);
-				glTranslatef(-mainRadius / 2, mainRadius * 2.5, -plamLength);
+				glTranslatef(-mainRadius / 2, mainRadius * 2.5, -palmLength);
+				glRotatef(rotatePalmX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotatePalmY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotatePalmZ, 0.0f, 0.0f, 1.0f);
+				glTranslatef(mainRadius / 2, -mainRadius * 2.5, palmLength);
+				glTranslatef(-mainRadius / 2, mainRadius * 2.5, -palmLength);
 				glRotatef(90.0, 1.0, 0.0, 0.0);
 				glRotatef(180.0f, 0.0, 1.0, 0.0);
-				drawPalm(wristJointRadius, fingerTipRadius, plamLength, false);
+				drawPalm(wristJointRadius, fingerTipRadius, palmLength, false);
 			}
 			glPopMatrix();
 
@@ -3039,14 +3961,14 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 			{
 				glTranslatef(0.0f, 0.0f, -punchSpeed);
 				glTranslatef(mainRadius, mainRadius * 2, 0.0f);
-				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
-				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
-				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
+				glRotatef(rotatePalmX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotatePalmY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotatePalmZ, 0.0f, 0.0f, 1.0f);
 				glTranslatef(-mainRadius, -mainRadius * 2, 0.0f);
 				glTranslatef(mainRadius, mainRadius * 2, 0.0f);
 				glRotatef(90.0, 1.0, 0.0, 0.0);
 				glRotatef(180.0, 0.0, 1.0, 0.0);
-				drawPalm(wristJointRadius, fingerTipRadius, plamLength, true);
+				drawPalm(wristJointRadius, fingerTipRadius, palmLength, true);
 			}
 			glPopMatrix();
 
@@ -3055,14 +3977,14 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 			{
 				glTranslatef(0.0f, 0.0f, punchSpeed);
 				glTranslatef(-mainRadius, mainRadius * 2, 0.0f);
-				glRotatef(rotatePlamX, 1.0f, 0.0f, 0.0f);
-				glRotatef(rotatePlamY, 0.0f, 1.0f, 0.0f);
-				glRotatef(rotatePlamZ, 0.0f, 0.0f, 1.0f);
+				glRotatef(rotatePalmX, 1.0f, 0.0f, 0.0f);
+				glRotatef(rotatePalmY, 0.0f, 1.0f, 0.0f);
+				glRotatef(rotatePalmZ, 0.0f, 0.0f, 1.0f);
 				glTranslatef(mainRadius, -mainRadius * 2, 0.0f);
 				glTranslatef(-mainRadius, mainRadius * 2, 0.0f);
 				glRotatef(90.0, 1.0, 0.0, 0.0);
 				glRotatef(180.0f, 0.0, 1.0, 0.0);
-				drawPalm(wristJointRadius, fingerTipRadius, plamLength, false);
+				drawPalm(wristJointRadius, fingerTipRadius, palmLength, false);
 			}
 			glPopMatrix();
 		}
@@ -3080,6 +4002,15 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 
+	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
+	GLfloat mainRadius = 0.325f;
+	GLfloat headRotate = 20.0f;
+	GLfloat wristJointRadius = 0.02625f;
+	GLfloat fingerTipRadius = 0.01875f;
+	GLfloat palmLength = 0.1275f;
+	GLfloat environmentRadius = 5.0f;
+
 	glPushMatrix();
 	{
 		gluLookAt(
@@ -3087,24 +4018,92 @@ void display()
 			lookAtX, lookAtY, lookAtZ,	// Look At
 			upX, upY, upZ);	// World Up
 
-		//GLUquadricObj* quad = gluNewQuadric();
-		//gluQuadricDrawStyle(quad, GLU_FILL);
-		//glPushMatrix();
-		//{
-		//	//glScalef(15, 15, 15);
-		//	// PLY: gluSphere()
-		//	gluSphere(quad, 0.005, 20, 20);
-		//}
-		//glPopMatrix();
+		glRotatef(camRotation[0], 1, 0, 0);
+		glRotatef(camRotation[1], 0, 1, 0);
+		//glRotatef(camRotation[2], 0, 0, 1);
+		glTranslatef(0.0f, 0.0f, camRotation[2]);
 
-		// Robot Name: Ruin Araneid
-		GLfloat mainRadius = 0.325f;
-		GLfloat headRotate = 20.0f;
-		GLfloat wristJointRadius = 0.02625f;
-		GLfloat fingerTipRadius = 0.01875f;
-		GLfloat plamLength = 0.1275f;
+		if (onLight)
+		{
+			glEnable(GL_LIGHT0);
+			glEnable(GL_LIGHT1);
+			glEnable(GL_LIGHT2);
+			glEnable(GL_LIGHT3);
+			glEnable(GL_LIGHTING);
+		}
+		else
+		{
+			glDisable(GL_LIGHT0);
+			glDisable(GL_LIGHT1);
+			glDisable(GL_LIGHT2);
+			glDisable(GL_LIGHT3);
+			glDisable(GL_LIGHTING);
+		}
+		GLfloat position1[4] = { 10.0f, 0.0f, 0.0f, 0.0f };
+		GLfloat position2[4] = { -10.0f, 0.0f, 0.0f, 0.0f };
+		GLfloat position3[4] = { 0.0f, 0.0f, -10.0f, 0.0f };
+		GLfloat position4[4] = { 0.0f, 0.0f, 10.0f, 0.0f };
 
-		drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, plamLength);
+		glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, positionLight);
+		//glLightfv(GL_LIGHT1, GL_POSITION, position2);
+		//glLightfv(GL_LIGHT2, GL_POSITION, position3);
+		//glLightfv(GL_LIGHT3, GL_POSITION, position4);
+
+		glPushMatrix();
+		{
+			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+			// Sky
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, environmentRadius, 0.0f);
+				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+				setMaterial(blackLight, whiteLight, greyLight);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, environmentRadius, headSlices, headStacks);
+			}
+			glPopMatrix();
+
+			// Ruin
+			glPushMatrix();
+			{
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, ruin1Texture);
+				gluQuadricTexture(quad, GL_TRUE);
+				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+				glTranslatef(0.0f, 0.0f, -environmentRadius);
+				setMaterial(blackLight, whiteLight, greyLight);
+				// PLY: gluSphere()
+				gluCylinder(quad, environmentRadius, environmentRadius, environmentRadius * 2.0, headSlices, headStacks);
+				glDisable(GL_TEXTURE_2D);
+			}
+			glPopMatrix();
+
+			// Ground
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, -mainRadius * 2, 0.0f);
+				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+				setMaterial(blackLight, whiteLight, greyLight);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, environmentRadius, headSlices, headStacks);
+			}
+			glPopMatrix();
+
+			// Under Ground
+			glPushMatrix();
+			{
+				glTranslatef(0.0f, -environmentRadius, 0.0f);
+				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+				setMaterial(blackLight, whiteLight, greyLight);
+				// PLY: gluDisk()
+				gluDisk(quad, 0.0f, environmentRadius, headSlices, headStacks);
+			}
+			glPopMatrix();
+
+			// Robot Name: Ruin Araneid
+			drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, palmLength);
+		}
+		glPopMatrix();
 	}
 	glPopMatrix();
 	//--------------------------------
@@ -3115,43 +4114,17 @@ void display()
 void setupCamera()
 {
 	glMatrixMode(GL_PROJECTION);
-	glOrtho(-3, 3, -3, 3, -3, 3);
+	glOrtho(-5, 5, -5, 5, -5, 5);
 }
-
-GLfloat ambientLight0[4] = { 0, 0, 0, 1 };
-GLfloat diffuseLight0[4] = { 1, 1, 1, 1 };
-//GLfloat specularLight0[4] = { 0.5, 0.5, 0.5, 1 };
-//GLfloat positionLight0[4] = { 0, 10, 0, 0 };
-//GLfloat ambientLight1[4] = { 1, 1, 1, 1 };
-//GLfloat diffuseLight1[4] = { 1, 1, 1, 1 };
-//GLfloat specularLight1[4] = { 0.5, 0.5, 0.5, 1 };
-//GLfloat positionLight1[4] = { 0, -10, 0, 0 };
 
 void setupLighting()
 {
-	//// Which Light - What Property - What Value for the Property
-	//// AMBIENT DEFAULT 0, 0, 0, 1
-	//// DIFFUSE DEFAULT 1, 1, 1, 1
-	//glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
-	//glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
-	//glLightfv(GL_LIGHT0, GL_POSITION, specularLight0);
-	//// Move Light Position to display() for Furter Control
-	//glLightfv(GL_LIGHT0, GL_POSITION, positionLight0);
-	//glLightfv(GL_LIGHT0, GL_SPOT_CUTOFF, positionLight0);
-	//glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, positionLight0);
-	//glEnable(GL_LIGHT0);
-
-	////glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
-	////glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
-	////glLightfv(GL_LIGHT0, GL_POSITION, specularLight1);
-	////glLightfv(GL_LIGHT1, GL_POSITION, positionLight1);
-	////glEnable(GL_LIGHT1);
-	//glEnable(GL_LIGHTING);
-	//// Use glColor3f() as material
-	////glEnable(GL_COLOR_MATERIAL);
-
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
+	// AMBIENT DEFAULT 0, 0, 0, 1
+	// DIFFUSE DEFAULT 1, 1, 1, 1
+	glLightfv(GL_LIGHT0, GL_AMBIENT, whiteLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, whiteLight);
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, spotLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, whiteLight);
 }
 
 void setupGLProperties()
@@ -3229,7 +4202,41 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow)
 	setupGLProperties();
 	setupLighting();
 	setupCamera();
-	//setupTextures(texFile, &texTexture);
+	setupTextures("starStrip2.bmp", &starStrip2Texture);
+	setupTextures("head3.bmp", &head3Texture);
+	setupTextures("eye2.bmp", &eye2Texture);
+	setupTextures("metal5.bmp", &metal5Texture);
+	setupTextures("leg5.bmp", &leg5Texture);
+	setupTextures("legTip.bmp", &legTipTexture);
+	setupTextures("body2.bmp", &body2Texture);
+	setupTextures("nailMovement.bmp", &nailTexture);
+	setupTextures("nailCover.bmp", &nailCoverTexture);
+	setupTextures("shoulder2.bmp", &shoulder2Texture);
+	setupTextures("darkGreyMetal.bmp", &darkGreyMetalTexture);
+	setupTextures("bluePlane.bmp", &bluePlaneTexture);
+	setupTextures("4bluePlane.bmp", &fourBluePlaneTexture);
+	setupTextures("damageEye.bmp", &damageEyeTexture);
+	setupTextures("damageBody.bmp", &damageBodyTexture);
+	setupTextures("damageLeg.bmp", &damageLegTexture);
+	setupTextures("damageShoulder.bmp", &damageShoulderTexture);
+	setupTextures("damageLowerShoulder.bmp", &damageLowerShoulderTexture);
+
+	setupTextures("stand1.bmp", &stand1Texture);
+	setupTextures("lowerStand.bmp", &lowerStandTexture);
+
+	setupTextures("metal.bmp", &metalTexture);
+	setupTextures("gunMagazine.bmp", &gunMegazineTexture);
+	setupTextures("kunai2.bmp", &kunai2Texture);
+	setupTextures("bullet.bmp", &bulletTexture);
+
+	setupTextures("purpleMetal.bmp", &purpleMetalTexture);
+	setupTextures("blackMetal.bmp", &blackMetalTexture);
+	setupTextures("finger.bmp", &fingerTexture);
+	setupTextures("waist.bmp", &waistTexture);
+	setupTextures("kunai.bmp", &kunaiTexture);
+
+	setupTextures("ruin.bmp", &ruinTexture);
+	setupTextures("ruin1.bmp", &ruin1Texture);
 
 	while (true)
 	{

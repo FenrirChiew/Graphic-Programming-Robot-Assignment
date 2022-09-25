@@ -157,17 +157,23 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="4bluePlane.bmp" />
+    <Image Include="blackMetal.bmp" />
     <Image Include="bladePlane.bmp" />
     <Image Include="bluePlane.bmp" />
     <Image Include="body.bmp" />
     <Image Include="body2.bmp" />
     <Image Include="bullet.bmp" />
     <Image Include="damageBody.bmp" />
+    <Image Include="damageEye.bmp" />
     <Image Include="damageLeg.bmp" />
+    <Image Include="damageLowerShoulder.bmp" />
     <Image Include="damageShoulder.bmp" />
     <Image Include="darkGreyMetal.bmp" />
     <Image Include="eye.bmp" />
     <Image Include="eye2.bmp" />
+    <Image Include="finger.bmp" />
+    <Image Include="gunMagazine.bmp" />
     <Image Include="head.bmp" />
     <Image Include="head2.bmp" />
     <Image Include="head3.bmp" />
@@ -181,6 +187,7 @@
     <Image Include="leg4.bmp" />
     <Image Include="leg5.bmp" />
     <Image Include="legTip.bmp" />
+    <Image Include="lowerStand.bmp" />
     <Image Include="metal.bmp" />
     <Image Include="metal2.bmp" />
     <Image Include="metal3.bmp" />
@@ -192,11 +199,14 @@
     <Image Include="nailMovement.bmp" />
     <Image Include="neck.bmp" />
     <Image Include="neck2.bmp" />
+    <Image Include="purpleMetal.bmp" />
     <Image Include="shoulder.bmp" />
     <Image Include="shoulder2.bmp" />
+    <Image Include="stand1.bmp" />
     <Image Include="starStrip.bmp" />
     <Image Include="starStrip2.bmp" />
     <Image Include="upperKunai.bmp" />
+    <Image Include="waist.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

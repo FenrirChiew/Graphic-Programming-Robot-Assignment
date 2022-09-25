@@ -146,5 +146,35 @@
     <Image Include="upperKunai.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="4bluePlane.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="blackMetal.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="damageEye.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="damageLowerShoulder.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="finger.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="gunMagazine.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="lowerStand.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="purpleMetal.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="stand1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="waist.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
