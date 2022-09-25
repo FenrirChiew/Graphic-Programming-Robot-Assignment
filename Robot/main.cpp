@@ -63,43 +63,42 @@ GLint textureTheme = 1;
 GLint environmentTheme = 1;
 
 // Texture Initiliazation --> Theme 1
-GLuint starStrip2Texture = 0;
-GLuint head3Texture = 0;
-GLuint eye2Texture = 0;
-GLuint leg5Texture = 0;
+GLuint blueStripTexture = 0;
+GLuint blackMetalTexture = 0;
+GLuint blueLightRayTexture = 0;
+GLuint blackWthBlueStripTexture = 0;
 GLuint legTipTexture = 0;
-GLuint metal5Texture = 0;
-GLuint body2Texture = 0;
-GLuint nailTexture = 0;
-GLuint nailCoverTexture = 0;
-GLuint shoulder2Texture = 0;
+GLuint jointMetalTexture = 0;
+GLuint bodyTexture = 0;
+GLuint wheelReactorTexture = 0;
+GLuint darkBrownTexture = 0;
+GLuint shoulderTexture = 0;
 GLuint darkGreyMetalTexture = 0;
-GLuint bluePlaneTexture = 0;
-GLuint fourBluePlaneTexture = 0;
+GLuint armorTexture = 0;
+GLuint armorSpikeTexture = 0;
 
 // Damage Texture Theme --> Theme 2
-GLuint damageBodyTexture = 0;
+GLuint damagebodyTexture = 0;
 GLuint damageLegTexture = 0;
 GLuint damageShoulderTexture = 0;
 GLuint damageLowerShoulderTexture = 0;
 GLuint damageEyeTexture = 0;
 
 // Stand 
-GLuint stand1Texture = 0;
-GLuint lowerStandTexture = 0;
+GLuint upperStandTexture = 0;
 
 // Gun Texture
-GLuint metalTexture = 0;
+GLuint gunMetalTexture = 0;
 GLuint gunMegazineTexture = 0;
-GLuint kunai2Texture = 0;
+GLuint gunTriggerTexture = 0;
 GLuint bulletTexture = 0;
 
 // Finger
 GLuint purpleMetalTexture = 0;
-GLuint blackMetalTexture = 0;
-GLuint fingerTexture = 0;
-GLuint waistTexture = 0;
-GLuint kunaiTexture = 0;
+GLuint blackPalmTexture = 0;
+GLuint goldPalmTexture = 0;
+GLuint wristTexture = 0;
+GLuint silverMetalTexture = 0;
 
 // Environment
 GLuint ruinTexture = 0;
@@ -1255,7 +1254,7 @@ void draw4PointedStar(GLfloat outerRadius, GLfloat innerRadius, GLfloat outerDep
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
+		glBindTexture(GL_TEXTURE_2D, blueStripTexture);
 
 		glPushMatrix();
 		{
@@ -1363,7 +1362,7 @@ void drawKunai(GLfloat gripRadius, GLfloat gripLength, GLfloat outerRadius, GLfl
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, starStrip2Texture);
+		glBindTexture(GL_TEXTURE_2D, blueStripTexture);
 		glPushMatrix();
 		{
 			glTranslatef(0.0f, innerRadius + gripLength, 0.0f);
@@ -1468,7 +1467,7 @@ void drawEyeFrame(GLfloat eyeRadius, GLfloat starOuterRadius, GLfloat starInnerR
 			if (textureTheme == 1)
 			{
 
-				glBindTexture(GL_TEXTURE_2D, eye2Texture);
+				glBindTexture(GL_TEXTURE_2D, blueLightRayTexture);
 			}
 			else if (textureTheme == 2)
 			{
@@ -1508,7 +1507,7 @@ void drawEyeTube(GLfloat radius, GLfloat height)
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, head3Texture);
+		glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
 		gluQuadricTexture(quad, GL_TRUE);
 		// PLY: gluCylinder()
 		gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
@@ -1627,7 +1626,7 @@ void drawStand(GLfloat standHeight)
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, stand1Texture);
+		glBindTexture(GL_TEXTURE_2D, upperStandTexture);
 		// PLY: GL_QUADS
 		glBegin(GL_QUADS);
 		{
@@ -1729,7 +1728,7 @@ void drawStand(GLfloat standHeight)
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+		glBindTexture(GL_TEXTURE_2D, darkBrownTexture);
 
 		// Front Right Stand Foot
 		glPushMatrix();
@@ -1799,11 +1798,11 @@ void drawHead(GLdouble radius, GLfloat trimRadius, GLfloat translatex, GLfloat t
 				{
 					if (textureTheme == 1)
 					{
-						glBindTexture(GL_TEXTURE_2D, body2Texture);
+						glBindTexture(GL_TEXTURE_2D, bodyTexture);
 					}
 					else if (textureTheme == 2)
 					{
-						glBindTexture(GL_TEXTURE_2D, damageBodyTexture);
+						glBindTexture(GL_TEXTURE_2D, damagebodyTexture);
 					}
 					gluQuadricTexture(quad, GL_TRUE);
 
@@ -1897,7 +1896,7 @@ void drawFinger(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, bool
 					// C1
 					glRotatef(rotateFinger, 1.0f, 0.0f, 0.0f);
 					glTranslatef(0.0f, 0.0f, -part1Length);
-					glBindTexture(GL_TEXTURE_2D, head3Texture);
+					glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluCylinder()
 					gluCylinder(quad, centerRadius, baseRadius, part1Length, tubeSlices, tubeStacks);
@@ -1967,7 +1966,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, waistTexture);
+				glBindTexture(GL_TEXTURE_2D, wristTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluSphere()
 				gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
@@ -1981,7 +1980,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, kunaiTexture);
+				glBindTexture(GL_TEXTURE_2D, silverMetalTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluCylinder()
 				gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
@@ -2006,7 +2005,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 			glEnable(GL_TEXTURE_2D);
 		}
 		{
-			glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
+			glBindTexture(GL_TEXTURE_2D, blackPalmTexture);
 
 			// PLY: GL_QUADS
 			glBegin(GL_QUADS);
@@ -2076,7 +2075,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, waistTexture);
+				glBindTexture(GL_TEXTURE_2D, wristTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluSphere()
 				gluSphere(quad, basedRadius, tubeSlices, tubeStacks);
@@ -2090,7 +2089,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, kunaiTexture);
+				glBindTexture(GL_TEXTURE_2D, silverMetalTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluCylinder()
 				gluCylinder(quad, basedRadius, basedRadius * 1.25, basedRadius * 1.25, tubeSlices, tubeStacks);
@@ -2115,7 +2114,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 			glEnable(GL_TEXTURE_2D);
 		}
 		{
-			glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
+			glBindTexture(GL_TEXTURE_2D, blackPalmTexture);
 
 			// PLY: GL_QUADS
 			glBegin(GL_QUADS);
@@ -2181,7 +2180,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, fingerTexture);
+		glBindTexture(GL_TEXTURE_2D, goldPalmTexture);
 
 		// PLY: GL_QUADS
 		glBegin(GL_QUADS);
@@ -2205,7 +2204,7 @@ void drawPalm(GLfloat basedRadius, GLfloat topRadius, GLfloat halfLength, boolea
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
+		glBindTexture(GL_TEXTURE_2D, blackPalmTexture);
 
 		// PLY: GL_QUADS
 		glBegin(GL_QUADS);
@@ -2356,7 +2355,7 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 			glEnable(GL_TEXTURE_2D);
 		}
 		{
-			glBindTexture(GL_TEXTURE_2D, leg5Texture);
+			glBindTexture(GL_TEXTURE_2D, blackWthBlueStripTexture);
 
 			// PLY: GL_QUAD_STRIP
 			glBegin(GL_QUAD_STRIP);
@@ -2451,7 +2450,7 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 						glEnable(GL_TEXTURE_2D);
 					}
 					{
-						glBindTexture(GL_TEXTURE_2D, eye2Texture);
+						glBindTexture(GL_TEXTURE_2D, blueLightRayTexture);
 						// PLY: gluSphere()
 						gluSphere(quad, radius / 4, tubeSlices, tubeStacks);
 					}
@@ -2464,7 +2463,7 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, fourBluePlaneTexture);
+					glBindTexture(GL_TEXTURE_2D, armorSpikeTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 
 					glPushMatrix();
@@ -2516,7 +2515,7 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, bluePlaneTexture);
+				glBindTexture(GL_TEXTURE_2D, armorTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluCylinder()
 				gluCylinder(quad, 0.0f, radius / 4, totalDepth * 4 / 5, tubeSlices, tubeStacks);
@@ -2564,7 +2563,7 @@ void drawWheel(GLfloat radius, GLfloat height)
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, metal5Texture);
+				glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluDisk()
 				gluDisk(quad, 0.0f, radius, tubeSlices, tubeStacks);
@@ -2577,7 +2576,7 @@ void drawWheel(GLfloat radius, GLfloat height)
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, nailTexture);
+				glBindTexture(GL_TEXTURE_2D, wheelReactorTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluCylinder()
 				gluCylinder(quad, radius, radius, height, tubeSlices, tubeStacks);
@@ -2611,7 +2610,7 @@ void drawNail(GLfloat radius, GLfloat height)
 			glEnable(GL_TEXTURE_2D);
 		}
 		{
-			glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+			glBindTexture(GL_TEXTURE_2D, darkBrownTexture);
 			gluQuadricTexture(quad, GL_TRUE);
 
 			glPushMatrix();
@@ -2657,7 +2656,7 @@ void drawNail(GLfloat radius, GLfloat height)
 			glEnable(GL_TEXTURE_2D);
 		}
 		{
-			glBindTexture(GL_TEXTURE_2D, nailCoverTexture);
+			glBindTexture(GL_TEXTURE_2D, darkBrownTexture);
 			gluQuadricTexture(quad, GL_TRUE);
 			// PLY: gluCylinder()
 			gluCylinder(quad, radius / 2, radius / 2, height / 4, tubeSlices, tubeStacks);
@@ -2686,7 +2685,7 @@ void drawGun(GLfloat gunLength)
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, metalTexture);
+		glBindTexture(GL_TEXTURE_2D, gunMetalTexture);
 		gluQuadricTexture(quad, GL_TRUE);
 		// Top Front Barrel
 		glPushMatrix();
@@ -2749,7 +2748,7 @@ void drawGun(GLfloat gunLength)
 		glEnable(GL_TEXTURE_2D);
 	}
 	{
-		glBindTexture(GL_TEXTURE_2D, kunai2Texture);
+		glBindTexture(GL_TEXTURE_2D, gunTriggerTexture);
 		gluQuadricTexture(quad, GL_TRUE);
 		// Outer Trigger
 		glPushMatrix();
@@ -2805,7 +2804,7 @@ void drawGun(GLfloat gunLength)
 			glEnable(GL_TEXTURE_2D);
 		}
 		{
-			glBindTexture(GL_TEXTURE_2D, metalTexture);
+			glBindTexture(GL_TEXTURE_2D, gunMetalTexture);
 			gluQuadricTexture(quad, GL_TRUE);
 			// PLY: gluCylinder()
 			gluCylinder(quad, gunLength / 16, gunLength / 16, gunHeight * 7 / 8, tubeSlices, tubeStacks);
@@ -2819,7 +2818,7 @@ void drawGun(GLfloat gunLength)
 			glEnable(GL_TEXTURE_2D);
 		}
 		{
-			glBindTexture(GL_TEXTURE_2D, metal5Texture);
+			glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 			gluQuadricTexture(quad, GL_TRUE);
 			// PLY: gluSphere()
 			gluSphere(quad, gunLength / 16, tubeSlices, tubeStacks);
@@ -2878,7 +2877,7 @@ void drawGun(GLfloat gunLength)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluCylinder()
 					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
@@ -2896,7 +2895,7 @@ void drawGun(GLfloat gunLength)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluDisk()
 					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
@@ -2982,7 +2981,7 @@ void drawGun(GLfloat gunLength)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluCylinder()
 					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
@@ -3000,7 +2999,7 @@ void drawGun(GLfloat gunLength)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluDisk()
 					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
@@ -3086,7 +3085,7 @@ void drawGun(GLfloat gunLength)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluCylinder()
 					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
@@ -3104,7 +3103,7 @@ void drawGun(GLfloat gunLength)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluDisk()
 					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
@@ -3190,7 +3189,7 @@ void drawGun(GLfloat gunLength)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluCylinder()
 					gluCylinder(quad, gunHeight / 5, gunHeight / 5, (gunLength - gunHeight) / 5, tubeSlices, tubeStacks);
@@ -3208,7 +3207,7 @@ void drawGun(GLfloat gunLength)
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// PLY: gluDisk()
 					gluDisk(quad, 0.0f, gunHeight / 5, tubeSlices, tubeStacks);
@@ -3269,7 +3268,7 @@ void drawShoulder(GLfloat shoulderHeight, GLfloat armorDepth, boolean isRight)
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, metal5Texture);
+				glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// PLY: gluSphere()
 				gluSphere(quad, shoulderHeight * 3 / 10, tubeSlices, tubeStacks);
@@ -3285,7 +3284,7 @@ void drawShoulder(GLfloat shoulderHeight, GLfloat armorDepth, boolean isRight)
 		{
 			if (textureTheme == 1)
 			{
-				glBindTexture(GL_TEXTURE_2D, shoulder2Texture);
+				glBindTexture(GL_TEXTURE_2D, shoulderTexture);
 			}
 			else if (textureTheme == 2)
 			{
@@ -3377,7 +3376,7 @@ void drawShoulder(GLfloat shoulderHeight, GLfloat armorDepth, boolean isRight)
 		{
 			if (textureTheme == 1)
 			{
-				glBindTexture(GL_TEXTURE_2D, head3Texture);
+				glBindTexture(GL_TEXTURE_2D, blackMetalTexture);
 			}
 			else if (textureTheme == 2)
 			{
@@ -3428,7 +3427,7 @@ void drawShoulder(GLfloat shoulderHeight, GLfloat armorDepth, boolean isRight)
 		{
 			if (textureTheme == 1)
 			{
-				glBindTexture(GL_TEXTURE_2D, shoulder2Texture);
+				glBindTexture(GL_TEXTURE_2D, shoulderTexture);
 			}
 			else if (textureTheme == 2)
 			{
@@ -3618,7 +3617,7 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 			glEnable(GL_TEXTURE_2D);
 		}
 		{
-			glBindTexture(GL_TEXTURE_2D, metal5Texture);
+			glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 			gluQuadricTexture(quad, GL_TRUE);
 			// PLY: gluSphere()
 			gluSphere(quad, baseRadius, tubeSlices, tubeStacks);
@@ -3642,7 +3641,7 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 		{
 			if (textureTheme == 1)
 			{
-				glBindTexture(GL_TEXTURE_2D, leg5Texture);
+				glBindTexture(GL_TEXTURE_2D, blackWthBlueStripTexture);
 			}
 			else if (textureTheme == 2)
 			{
@@ -3665,7 +3664,7 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 				glEnable(GL_TEXTURE_2D);
 			}
 			{
-				glBindTexture(GL_TEXTURE_2D, metal5Texture);
+				glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 				gluQuadricTexture(quad, GL_TRUE);
 				// S2
 				// PLY: gluSphere()
@@ -3694,7 +3693,7 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 			{
 				if (textureTheme == 1)
 				{
-					glBindTexture(GL_TEXTURE_2D, leg5Texture);
+					glBindTexture(GL_TEXTURE_2D, blackWthBlueStripTexture);
 				}
 				else if (textureTheme == 2)
 				{
@@ -3716,7 +3715,7 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 					glEnable(GL_TEXTURE_2D);
 				}
 				{
-					glBindTexture(GL_TEXTURE_2D, metal5Texture);
+					glBindTexture(GL_TEXTURE_2D, jointMetalTexture);
 					gluQuadricTexture(quad, GL_TRUE);
 					// S3
 					// PLY: gluSphere()
@@ -4263,38 +4262,37 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow)
 	setupGLProperties();
 	setupLighting();
 	setupCamera();
-	setupTextures("starStrip2.bmp", &starStrip2Texture);
-	setupTextures("head3.bmp", &head3Texture);
-	setupTextures("eye2.bmp", &eye2Texture);
-	setupTextures("metal5.bmp", &metal5Texture);
-	setupTextures("leg5.bmp", &leg5Texture);
+	setupTextures("blueStrip.bmp", &blueStripTexture);
+	setupTextures("blackMetal.bmp", &blackMetalTexture);
+	setupTextures("blueLightRay.bmp", &blueLightRayTexture);
+	setupTextures("jointMetal.bmp", &jointMetalTexture);
+	setupTextures("blackWthBlueStrip.bmp", &blackWthBlueStripTexture);
 	setupTextures("legTip.bmp", &legTipTexture);
-	setupTextures("body2.bmp", &body2Texture);
-	setupTextures("nailMovement.bmp", &nailTexture);
-	setupTextures("nailCover.bmp", &nailCoverTexture);
-	setupTextures("shoulder2.bmp", &shoulder2Texture);
+	setupTextures("body.bmp", &bodyTexture);
+	setupTextures("wheelReactor.bmp", &wheelReactorTexture);
+	setupTextures("darkBrown.bmp", &darkBrownTexture);
+	setupTextures("shoulder.bmp", &shoulderTexture);
 	setupTextures("darkGreyMetal.bmp", &darkGreyMetalTexture);
-	setupTextures("bluePlane.bmp", &bluePlaneTexture);
-	setupTextures("4bluePlane.bmp", &fourBluePlaneTexture);
+	setupTextures("armor.bmp", &armorTexture);
+	setupTextures("armorSpike.bmp", &armorSpikeTexture);
 	setupTextures("damageEye.bmp", &damageEyeTexture);
-	setupTextures("damageBody.bmp", &damageBodyTexture);
+	setupTextures("damageBody.bmp", &damagebodyTexture);
 	setupTextures("damageLeg.bmp", &damageLegTexture);
 	setupTextures("damageShoulder.bmp", &damageShoulderTexture);
 	setupTextures("damageLowerShoulder.bmp", &damageLowerShoulderTexture);
 
-	setupTextures("stand1.bmp", &stand1Texture);
-	setupTextures("lowerStand.bmp", &lowerStandTexture);
+	setupTextures("upperStand.bmp", &upperStandTexture);
 
-	setupTextures("metal.bmp", &metalTexture);
+	setupTextures("gunMetal.bmp", &gunMetalTexture);
 	setupTextures("gunMagazine.bmp", &gunMegazineTexture);
-	setupTextures("kunai2.bmp", &kunai2Texture);
+	setupTextures("gunTrigger.bmp", &gunTriggerTexture);
 	setupTextures("bullet.bmp", &bulletTexture);
 
 	setupTextures("purpleMetal.bmp", &purpleMetalTexture);
-	setupTextures("blackMetal.bmp", &blackMetalTexture);
-	setupTextures("finger.bmp", &fingerTexture);
-	setupTextures("waist.bmp", &waistTexture);
-	setupTextures("kunai.bmp", &kunaiTexture);
+	setupTextures("blackPalm.bmp", &blackPalmTexture);
+	setupTextures("goldPalm.bmp", &goldPalmTexture);
+	setupTextures("wrist.bmp", &wristTexture);
+	setupTextures("silverMetal.bmp", &silverMetalTexture);
 
 	setupTextures("ruin.bmp", &ruinTexture);
 	setupTextures("ruin2.bmp", &ruin2Texture);

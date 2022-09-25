@@ -26,16 +26,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="bladePlane.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="bluePlane.bmp">
+    <Image Include="armor.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="body.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="body2.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="bullet.bmp">
@@ -53,103 +47,46 @@
     <Image Include="darkGreyMetal.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="eye.bmp">
+    <Image Include="blueLightRay.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="eye2.bmp">
+    <Image Include="blackMetal.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="head.bmp">
+    <Image Include="silverMetal.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="head2.bmp">
+    <Image Include="gunTrigger.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="head3.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="kunai.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="kunai2.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="lavaStone.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="lavaStone2.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="leg.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="leg2.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="leg3.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="leg4.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="leg5.bmp">
+    <Image Include="blackWthBlueStrip.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="legTip.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="metal.bmp">
+    <Image Include="gunMetal.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="metal2.bmp">
+    <Image Include="jointMetal.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="metal3.bmp">
+    <Image Include="darkBrown.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="metal4.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="metal5.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="mothEye.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="mothEye2.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="nailCover.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="nailMovement.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="neck.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="neck2.bmp">
+    <Image Include="wheelReactor.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="shoulder.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="shoulder2.bmp">
+    <Image Include="blueStrip.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="starStrip.bmp">
+    <Image Include="armorSpike.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="starStrip2.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="upperKunai.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="4bluePlane.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="blackMetal.bmp">
+    <Image Include="blackPalm.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="damageEye.bmp">
@@ -158,22 +95,37 @@
     <Image Include="damageLowerShoulder.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="finger.bmp">
+    <Image Include="goldPalm.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="gunMagazine.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="lowerStand.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="purpleMetal.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="stand1.bmp">
+    <Image Include="upperStand.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="waist.bmp">
+    <Image Include="wrist.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="ruin.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="ruin2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="ruinFloor.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="ruinFloor2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="ruinSky.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="ruinSky2.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
