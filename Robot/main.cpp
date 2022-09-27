@@ -34,13 +34,13 @@ GLfloat speed = 15.0f;
 
 // Projection Attributes
 boolean isOrtho = true;
-GLfloat r = -2.5f;
-GLfloat angle = 360;
+GLfloat r = 2.5f;
+GLfloat angle = 180.0f;
 GLfloat eyeX = r * sin(angle * 3.142 / 180.0);
 GLfloat eyeY = r;
 GLfloat eyeZ = r * cos(angle * 3.142 / 180.0);
 GLfloat lookAtX = 0.0f;
-GLfloat lookAtY = -4.0f;
+GLfloat lookAtY = 0.0f;
 GLfloat lookAtZ = 0.0f;
 GLfloat upX = 0.0f;
 GLfloat upY = 1.0f;
@@ -50,10 +50,12 @@ GLfloat cameraSpeed = 10.0f;
 // Light Attributes
 boolean onLight = true;
 boolean isDay = true;
+GLfloat lightDistance = 5.0f;
+GLfloat lightAngle = 180.0f;
 GLfloat blackLight[4] = { 0, 0, 0, 1 };
 GLfloat whiteLight[4] = { 1, 1, 1, 1 };
-GLfloat greyLight[4] = { 0.5, 0.5, 0.5, 1.0 };
-GLfloat positionLight[4] = { 0.0f, 0.f, 0.0f, 0.0f };
+GLfloat greyLight[4] = { 0.75, 0.75, 0.75, 1.0 };
+GLfloat positionLight[4] = { lightDistance * sin(lightAngle * 3.142 / 180.0), lightDistance, lightDistance * cos(lightAngle * 3.142 / 180.0), 0.0f };
 
 // Texture Attributes
 BITMAP BMP;
@@ -129,6 +131,8 @@ GLfloat rotateWristJointX = 0.0f;
 GLfloat rotateWristJointY = 5.0f;
 GLfloat rotateWristJointZ = 0.0f;
 boolean armReturn = false;
+GLint walkingDirection = 0;
+boolean walkingIdle = true;
 
 // Armor Attributes
 boolean onArmor = false;
@@ -137,8 +141,9 @@ GLfloat armorSpeed = 0.0f;
 GLfloat armorSize = 0.0f;
 boolean onSpiky = false;
 boolean firstSpiky = true;
-GLfloat spikySpeed = 0.0f;
 GLfloat spikySize = 0.0f;
+GLfloat energySize = 0.0f;
+boolean energyReturn = false;
 
 // Maglev Punch Attributes
 GLfloat rotateFinger = 90.0f;
@@ -155,6 +160,7 @@ GLfloat rotateHandY = 0.0f;
 GLfloat rotateHandZ = 0.0f;
 GLfloat punchSpeed = 0.0f;
 boolean punchReturn = false;
+boolean punchIdle = true;
 
 // Gun Attributes
 boolean onGun = false;
@@ -264,22 +270,24 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			lastY = 0.0f;
 
 			// Projection Attributes
-			r = -2.5f;
-			angle = 360.0f;
+			r = 2.5f;
+			angle = 180.0f;
 			eyeX = r * sin(angle * 3.142 / 180.0);
 			eyeY = r;
 			eyeZ = r * cos(angle * 3.142 / 180.0);
 			lookAtX = 0.0f;
-			lookAtY = -4.0f;
+			lookAtY = 0.0f;
 			lookAtZ = 0.0f;
 			upX = 0.0f;
 			upY = 1.0f;
 			upZ = 0.0f;
 
 			// Light Attributes
-			positionLight[0] = 0.0f;
-			positionLight[1] = 0.0f;
-			positionLight[2] = 0.0f;
+			lightDistance = 5.0f;
+			lightAngle = 180.0f;
+			positionLight[0] = lightDistance * sin(lightAngle * 3.142 / 180.0);
+			positionLight[1] = lightDistance;
+			positionLight[2] = lightDistance * cos(lightAngle * 3.142 / 180.0);
 			positionLight[3] = 0.0f;
 			onLight = true;
 			isDay = true;
@@ -287,6 +295,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Texture Attributes
 			onTexture = true;
 			textureTheme = 1;
+			environmentTheme = 1;
 
 			// State Attributes
 			onRest = true;
@@ -309,6 +318,8 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			rotateWristJointY = 5.0f;
 			rotateWristJointZ = 0.0f;
 			armReturn = false;
+			walkingDirection = 0;
+			walkingIdle = true;
 
 			// Armor Attributes
 			onArmor = false;
@@ -317,8 +328,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			armorSize = 0.0f;
 			onSpiky = false;
 			firstSpiky = true;
-			spikySpeed = 0.0f;
 			spikySize = 0.0f;
+			energySize = 0.0f;
+			energyReturn = false;
 
 			// Maglev Punch Attributes
 			rotateFinger = 90.0f;
@@ -335,6 +347,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			rotateHandZ = 0.0f;
 			punchSpeed = 0.0f;
 			punchReturn = false;
+			punchIdle = true;
 
 			// Gun Attributes
 			onGun = false;
@@ -358,7 +371,11 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				isOrtho = true;
 				glMatrixMode(GL_PROJECTION);
 				glLoadIdentity();
-				glOrtho(-5, 5, -5, 5, 2, 10);
+				glOrtho(-5, 5, -5, 5, 2, 20);
+				r = 2.5f;
+				eyeX = r * sin(angle * 3.142 / 180.0);
+				eyeY = r;
+				eyeZ = r * cos(angle * 3.142 / 180.0);
 			}
 			else if (wParam == VK_NUMPAD0)
 			{
@@ -368,7 +385,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 				if (isOrtho)
 				{
-					glOrtho(-5, 5, -5, 5, 2, 10);
+					glOrtho(-5, 5, -5, 5, 2, 20);
 				}
 				else
 				{
@@ -383,20 +400,20 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Reset MODE 1
 			if (wParam == VK_TAB)
 			{
-				r = -2.5f;
-				angle = 360.0f;
+				r = 2.5f;
+				angle = 180.0f;
 				eyeX = r * sin(angle * 3.142 / 180.0);
 				eyeY = r;
 				eyeZ = r * cos(angle * 3.142 / 180.0);
 				lookAtX = 0.0f;
-				lookAtY = -4.0f;
+				lookAtY = 0.0f;
 				lookAtZ = 0.0f;
 				upX = 0.0f;
 				upY = 1.0f;
 				upZ = 0.0f;
 			}
 			// Eye
-			else if (wParam == 'D')
+			if (wParam == 'D')
 			{
 				angle += 5;
 				eyeX = r * sin(angle * 3.142 / 180.0);
@@ -412,21 +429,15 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			else if (wParam == 'W')
 			{
-				if (eyeY > -4.5)
-				{
-					eyeX = r * sin(angle * 3.142 / 180.0);
-					eyeY += eyeY * 0.1f;
-					eyeZ = r * cos(angle * 3.142 / 180.0);
-				}
+				eyeX = r * sin(angle * 3.142 / 180.0);
+				eyeY += eyeY * 0.1f;
+				eyeZ = r * cos(angle * 3.142 / 180.0);
 			}
 			else if (wParam == 'S')
 			{
-				if (eyeY < -1.0)
-				{
-					eyeX = r * sin(angle * 3.142 / 180.0);
-					eyeY -= eyeY * 0.1f;
-					eyeZ = r * cos(angle * 3.142 / 180.0);
-				}
+				eyeX = r * sin(angle * 3.142 / 180.0);
+				eyeY -= eyeY * 0.1f;
+				eyeZ = r * cos(angle * 3.142 / 180.0);
 			}
 			else if (wParam == 'Q')
 			{
@@ -500,9 +511,11 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			// Reset MODE 2
 			if (wParam == VK_TAB)
 			{
-				positionLight[0] = 0.0f;
-				positionLight[1] = 0.0f;
-				positionLight[2] = 0.0f;
+				lightDistance = 5.0f;
+				lightAngle = 180.0f;
+				positionLight[0] = lightDistance * sin(lightAngle * 3.142 / 180.0);
+				positionLight[1] = lightDistance;
+				positionLight[2] = lightDistance * cos(lightAngle * 3.142 / 180.0);
 				positionLight[3] = 0.0f;
 				onLight = true;
 				isDay = true;
@@ -510,32 +523,48 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			else if (wParam == 'D')	// Right
 			{
 				// lightX
-				positionLight[0] += cameraSpeed * elapsedSeconds;
+				lightAngle += 5;
+				positionLight[0] = lightDistance * sin(lightAngle * 3.142 / 180.0);
+				positionLight[1] = positionLight[1];
+				positionLight[2] = lightDistance * cos(lightAngle * 3.142 / 180.0);
 			}
 			else if (wParam == 'A')	// Left
 			{
 				// lightX
-				positionLight[0] -= cameraSpeed * elapsedSeconds;
+				lightAngle -= 5;
+				positionLight[0] = lightDistance * sin(lightAngle * 3.142 / 180.0);
+				positionLight[1] = positionLight[1];
+				positionLight[2] = lightDistance * cos(lightAngle * 3.142 / 180.0);
 			}
 			else if (wParam == 'W')	// Up
 			{
 				// lightY
-				positionLight[1] += cameraSpeed * elapsedSeconds;
+				positionLight[0] = lightDistance * sin(lightAngle * 3.142 / 180.0);
+				positionLight[1] += positionLight[1] * 0.1f;
+				positionLight[2] = lightDistance * cos(lightAngle * 3.142 / 180.0);
 			}
 			else if (wParam == 'S')	// Down
 			{
 				// lightY
-				positionLight[1] -= cameraSpeed * elapsedSeconds;
+				positionLight[0] = lightDistance * sin(lightAngle * 3.142 / 180.0);
+				positionLight[1] -= positionLight[1] * 0.1f;
+				positionLight[2] = lightDistance * cos(lightAngle * 3.142 / 180.0);
 			}
 			else if (wParam == 'Q')	// Near
 			{
 				// lightZ
-				positionLight[2] += cameraSpeed * elapsedSeconds;
+				lightDistance += 0.1f;
+				positionLight[0] = lightDistance * sin(lightAngle * 3.142 / 180.0);
+				positionLight[1] += 0.1f;
+				positionLight[2] = lightDistance * cos(lightAngle * 3.142 / 180.0);
 			}
 			else if (wParam == 'E')	// Far
 			{
 				// lightZ
-				positionLight[2] -= cameraSpeed * elapsedSeconds;
+				lightDistance -= 0.1f;
+				positionLight[0] = lightDistance * sin(lightAngle * 3.142 / 180.0);
+				positionLight[1] -= 0.1f;
+				positionLight[2] = lightDistance * cos(lightAngle * 3.142 / 180.0);
 			}
 			else if (wParam == 'X')	// On/Off Light
 			{
@@ -555,6 +584,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			{
 				onTexture = true;
 				textureTheme = 1;
+				environmentTheme = 1;
 			}
 			else if (wParam == 'X')
 			{
@@ -588,8 +618,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				armorSpeed = 0.0f;
 				onSpiky = false;
 				firstSpiky = true;
-				spikySpeed = 0.0f;
 				spikySize = 0.0f;
+				energySize = 0.0f;
+				energyReturn = false;
 
 				onHand = false;
 				firstHand = true;
@@ -619,8 +650,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				armorSpeed = 0.0f;
 				onSpiky = false;
 				firstSpiky = true;
-				spikySpeed = 0.0f;
 				spikySize = 0.0f;
+				energySize = 0.0f;
+				energyReturn = false;
 
 				onHand = false;
 				firstHand = true;
@@ -654,7 +686,6 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				// Reset MODE 5
 				if (wParam == VK_TAB)
 				{
-					armReturn = false;
 					rotateShoulderJointX = 0.0f;
 					rotateShoulderJointY = 0.0f;
 					rotateShoulderJointZ = -5.0f;
@@ -667,116 +698,39 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					rotateWristJointX = 0.0f;
 					rotateWristJointY = 5.0f;
 					rotateWristJointZ = 0.0f;
+					armReturn = false;
+					walkingDirection = 0;
+					walkingIdle = true;
 				}
 				else if (wParam == 'W')
 				{
-					if (!armReturn)
-					{
-						if (rotateShoulderJointX < 10.0f)
-						{
-							rotateShoulderJointX += 0.5 * speed * elapsedSeconds;
-						}
-						if (rotateUpperArmJointX < 10.0f)
-						{
-							rotateUpperArmJointX += 0.5 * speed * elapsedSeconds;
-						}
-						if (rotateShoulderJointX > 10.0f && rotateUpperArmJointX > 10.0f)
-						{
-							armReturn = true;
-						}
-					}
-					else
-					{
-						if (rotateShoulderJointX > -10.0f)
-						{
-							rotateShoulderJointX -= 0.5 * speed * elapsedSeconds;
-						}
-						if (rotateUpperArmJointX > -10.0f)
-						{
-							rotateUpperArmJointX -= 0.5 * speed * elapsedSeconds;
-						}
-						if (rotateShoulderJointX < -10.0f && rotateUpperArmJointX < -10.0f)
-						{
-							armReturn = false;
-						}
-					}
+					walkingIdle = false;
+					walkingDirection = 1;
 				}
 				else if (wParam == 'S')
 				{
-					if (!armReturn)
-					{
-						if (rotateShoulderJointX > -10.0f)
-						{
-							rotateShoulderJointX -= 0.5 * speed * elapsedSeconds;
-						}
-						if (rotateUpperArmJointX > -10.0f)
-						{
-							rotateUpperArmJointX -= 0.5 * speed * elapsedSeconds;
-						}
-						if (rotateShoulderJointX < -10.0f && rotateUpperArmJointX < -10.0f)
-						{
-							armReturn = true;
-						}
-					}
-					else
-					{
-						if (rotateShoulderJointX < 10.0f)
-						{
-							rotateShoulderJointX += 0.5 * speed * elapsedSeconds;
-						}
-						if (rotateUpperArmJointX < 10.0f)
-						{
-							rotateUpperArmJointX += 0.5 * speed * elapsedSeconds;
-						}
-						if (rotateShoulderJointX > 10.0f && rotateUpperArmJointX > 10.0f)
-						{
-							armReturn = false;
-						}
-					}
+					walkingIdle = false;
+					walkingDirection = 2;
 				}
 				else if (wParam == 'D')
 				{
-					if (rotateShoulderJointZ < 10.0f)
-					{
-						rotateShoulderJointZ += speed * elapsedSeconds;
-					}
-					if (rotateUpperArmJointY < 10.0f)
-					{
-						rotateUpperArmJointY += speed * elapsedSeconds;
-					}
+					walkingIdle = false;
+					walkingDirection = 3;
 				}
 				else if (wParam == 'A')
 				{
-					if (rotateShoulderJointZ > -10.0f)
-					{
-						rotateShoulderJointZ -= speed * elapsedSeconds;
-					}
-					if (rotateUpperArmJointY > -10.0f)
-					{
-						rotateUpperArmJointY -= speed * elapsedSeconds;
-					}
+					walkingIdle = false;
+					walkingDirection = 4;
 				}
 				else if (wParam == 'Q')
 				{
-					if (rotateShoulderJointY < 10.0f)
-					{
-						rotateShoulderJointY += speed * elapsedSeconds;
-					}
-					if (rotateUpperArmJointZ > 10.0f)
-					{
-						rotateUpperArmJointZ -= speed * elapsedSeconds;
-					}
+					walkingIdle = false;
+					walkingDirection = 5;
 				}
 				else if (wParam == 'E')
 				{
-					if (rotateShoulderJointY > -10.0f)
-					{
-						rotateShoulderJointY -= speed * elapsedSeconds;
-					}
-					if (rotateUpperArmJointZ < -10.0f)
-					{
-						rotateUpperArmJointZ += speed * elapsedSeconds;
-					}
+					walkingIdle = false;
+					walkingDirection = 6;
 				}
 				else if (wParam == 'F')
 				{
@@ -876,8 +830,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					armorSpeed = 0.0f;
 					onSpiky = false;
 					firstSpiky = true;
-					spikySpeed = 0.0f;
 					spikySize = 0.0f;
+					energySize = 0.0f;
+					energyReturn = false;
 
 					onHand = false;
 					firstHand = true;
@@ -913,6 +868,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					rotateHandZ = 0.0f;
 					punchSpeed = 0.0f;
 					punchReturn = false;
+					punchIdle = true;
 				}
 				// WEAPON G: Gun
 				else if (wParam == 'G')
@@ -934,12 +890,13 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				{
 					onSpiky = false;
 					firstSpiky = true;
-					spikySpeed = 0.0f;
 					spikySize = 0.0f;
+					energySize = 0.0f;
+					energyReturn = false;
 				}
 				else if (wParam == 'X')
 				{
-					onSpiky = !onSpiky;
+					onSpiky = true;
 				}
 			}
 
@@ -959,6 +916,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 					rotateHandZ = 0.0f;
 					punchSpeed = 0.0f;
 					punchReturn = false;
+					punchIdle = true;
 				}
 				else if (wParam == 'W')
 				{
@@ -1050,28 +1008,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				}
 				else if (wParam == 'C')
 				{
-					if (!punchReturn)
-					{
-						if (punchSpeed < 0.5f)
-						{
-							punchSpeed += 0.025 * speed * elapsedSeconds;
-						}
-						else
-						{
-							punchReturn = true;
-						}
-					}
-					else
-					{
-						if (punchSpeed > -0.5f)
-						{
-							punchSpeed -= 0.025 * speed * elapsedSeconds;
-						}
-						else
-						{
-							punchReturn = false;
-						}
-					}
+					punchIdle = false;
 				}
 			}
 
@@ -1138,6 +1075,36 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		}
 		break;
 	case WM_KEYUP:
+		// MODE 7: Weapon Control (Armor)
+		if (mode == 7)
+		{
+			if (wParam == 'X')
+			{
+				onSpiky = false;
+			}
+		}
+
+		// MODE 8: Weapon Control (Maglev Punch)
+		if (mode == 8)
+		{
+			if (wParam == 'C')
+			{
+				punchIdle = true;
+			}
+		}
+
+		// DECS: Enable only if the robot is not in STATE R
+		if (!onRest)
+		{
+			// MODE 5: Limb Control
+			if (mode == 5)
+			{
+				if (wParam == 'W' || wParam == 'S' || wParam == 'D' || wParam == 'A' || wParam == 'Q' || wParam == 'E')
+				{
+					walkingIdle = true;
+				}
+			}
+		}
 		break;
 	default:
 		break;
@@ -2422,6 +2389,32 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 					{
 						spikySize += 0.01f;
 					}
+
+					//if (spikySize < 1.0f)
+					//{
+						if (!energyReturn)
+						{
+							if (energySize < 1.0f)
+							{
+								energySize += 0.01f;
+							}
+							if (energySize > 1.0f)
+							{
+								energyReturn = true;
+							}
+						}
+						else
+						{
+							if (energySize > 0.0f)
+							{
+								energySize -= 0.01f;
+							}
+							if (energySize < 0.0f)
+							{
+								energyReturn = false;
+							}
+						}
+					//}
 				}
 				else
 				{
@@ -2444,6 +2437,7 @@ void drawArmor(GLfloat radius, GLfloat totalDepth)
 				glPushMatrix();
 				{
 					glTranslatef(0.0f, 0.0f, -totalDepth / 5);
+					glScalef(energySize, energySize, energySize);
 
 					if (onTexture)
 					{
@@ -3624,6 +3618,325 @@ void drawArm(GLfloat baseRadius, GLfloat topRadius, GLfloat totalLength, boolean
 		}
 		glDisable(GL_TEXTURE_2D);
 
+		if (!walkingIdle)
+		{
+			if (walkingDirection == 1)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointX < 10.0f)
+					{
+						rotateUpperArmJointX += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointX > 10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointX > -10.0f)
+					{
+						rotateUpperArmJointX -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointX < -10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 2)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointX > -10.0f)
+					{
+						rotateUpperArmJointX -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointX < -10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointX < 10.0f)
+					{
+						rotateUpperArmJointX += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointX > 10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 3)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointY < 10.0f)
+					{
+						rotateUpperArmJointY += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointY > 10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointY > -10.0f)
+					{
+						rotateUpperArmJointY -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointY < -10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 4)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointY > -10.0f)
+					{
+						rotateUpperArmJointY -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointY < -10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointY < 10.0f)
+					{
+						rotateUpperArmJointY += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointY > 10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 5)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointZ < 10.0f)
+					{
+						rotateUpperArmJointZ += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointZ > 10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointZ > -10.0f)
+					{
+						rotateUpperArmJointZ -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointZ < -10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 6)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointZ > -10.0f)
+					{
+						rotateUpperArmJointZ -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointZ < -10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointZ < 10.0f)
+					{
+						rotateUpperArmJointZ += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateUpperArmJointZ > 10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+		}
+		else
+		{
+			if (walkingDirection == 1)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointX > 0.0f)
+					{
+						rotateUpperArmJointX -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointX = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointX < 0.0f)
+					{
+						rotateUpperArmJointX += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointX = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 2)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointX < 0.0f)
+					{
+						rotateUpperArmJointX += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointX = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointX > 0.0f)
+					{
+						rotateUpperArmJointX -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointX = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 3)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointY > 0.0f)
+					{
+						rotateUpperArmJointY -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointY = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointY < 0.0f)
+					{
+						rotateUpperArmJointY += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointY = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 4)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointY < 0.0f)
+					{
+						rotateUpperArmJointY += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointY = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointY > 0.0f)
+					{
+						rotateUpperArmJointY -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointY = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 5)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointZ > 0.0f)
+					{
+						rotateUpperArmJointZ -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointZ = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointZ < 0.0f)
+					{
+						rotateUpperArmJointZ += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointZ = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 6)
+			{
+				if (!armReturn)
+				{
+					if (rotateUpperArmJointZ < 0.0f)
+					{
+						rotateUpperArmJointZ += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointZ = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateUpperArmJointZ > 0.0f)
+					{
+						rotateUpperArmJointZ -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateUpperArmJointZ = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+		}
+
 		//C1
 		glRotatef(rotateUpperArmJointX, 1.0f, 0.0f, 0.0f);
 		glRotatef(rotateUpperArmJointY, 0.0f, 1.0f, 0.0f);
@@ -3754,6 +4067,325 @@ void drawLimbs(GLfloat shoulderHeight, GLfloat armorDepth, GLfloat armLength, GL
 	// Shoulders
 	glPushMatrix();
 	{
+		if (!walkingIdle)
+		{
+			if (walkingDirection == 1)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointX < 10.0f)
+					{
+						rotateShoulderJointX += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointX > 10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointX > -10.0f)
+					{
+						rotateShoulderJointX -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointX < -10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 2)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointX > -10.0f)
+					{
+						rotateShoulderJointX -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointX < -10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointX < 10.0f)
+					{
+						rotateShoulderJointX += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointX > 10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 3)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointZ < 10.0f)
+					{
+						rotateShoulderJointZ += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointZ > 10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointZ > -10.0f)
+					{
+						rotateShoulderJointZ -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointZ < -10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 4)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointZ > -10.0f)
+					{
+						rotateShoulderJointZ -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointZ < -10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointZ < 10.0f)
+					{
+						rotateShoulderJointZ += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointZ > 10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 5)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointY < 10.0f)
+					{
+						rotateShoulderJointY += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointY > 10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointY > -10.0f)
+					{
+						rotateShoulderJointY -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointY < -10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 6)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointY > -10.0f)
+					{
+						rotateShoulderJointY -= 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointY < -10.0f)
+					{
+						armReturn = true;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointY < 10.0f)
+					{
+						rotateShoulderJointY += 0.005 * speed * elapsedSeconds;
+					}
+					if (rotateShoulderJointY > 10.0f)
+					{
+						armReturn = false;
+					}
+				}
+			}
+		}
+		else
+		{
+			if (walkingDirection == 1)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointX > 0.0f)
+					{
+						rotateShoulderJointX -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointX = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointX < 0.0f)
+					{
+						rotateShoulderJointX += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointX = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 2)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointX < 0.0f)
+					{
+						rotateShoulderJointX += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointX = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointX > 0.0f)
+					{
+						rotateShoulderJointX -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointX = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 3)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointZ > -5.0f)
+					{
+						rotateShoulderJointZ -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointZ = -5.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointZ < -5.0f)
+					{
+						rotateShoulderJointZ += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointZ = -5.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 4)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointZ < -5.0f)
+					{
+						rotateShoulderJointZ += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointZ = -5.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointZ > -5.0f)
+					{
+						rotateShoulderJointZ -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointZ = -5.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 5)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointY > 0.0f)
+					{
+						rotateShoulderJointY -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointY = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointY < 0.0f)
+					{
+						rotateShoulderJointY += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointY = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+			else if (walkingDirection == 6)
+			{
+				if (!armReturn)
+				{
+					if (rotateShoulderJointY < 0.0f)
+					{
+						rotateShoulderJointY += 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointY = 0.0f;
+						armReturn = false;
+					}
+				}
+				else
+				{
+					if (rotateShoulderJointY > 0.0f)
+					{
+						rotateShoulderJointY -= 0.005 * speed * elapsedSeconds;
+					}
+					else
+					{
+						rotateShoulderJointY = 0.0f;
+						armReturn = false;
+					}
+				}
+			}
+		}
+
 		if (onRest)
 		{
 			if (firstRest)
@@ -3941,6 +4573,59 @@ void drawRobot(GLfloat mainRadius, GLfloat headRotate, GLfloat wristJointRadius,
 			glRotatef(rotateHandY, 0.0f, 1.0f, 0.0f);
 			glRotatef(rotateHandZ, 0.0f, 0.0f, 1.0f);
 
+			if (!punchIdle)
+			{
+				if (!punchReturn)
+				{
+					if (punchSpeed < 0.5f)
+					{
+						punchSpeed += 0.025 * speed * elapsedSeconds;
+					}
+					else
+					{
+						punchReturn = true;
+					}
+				}
+				else
+				{
+					if (punchSpeed > -0.5f)
+					{
+						punchSpeed -= 0.025 * speed * elapsedSeconds;
+					}
+					else
+					{
+						punchReturn = false;
+					}
+				}
+			}
+			else
+			{
+				if (!punchReturn)
+				{
+					if (punchSpeed > 0.0f)
+					{
+						punchSpeed -= 0.025 * speed * elapsedSeconds;
+					}
+					else
+					{
+						punchSpeed = 0.0f;
+						punchReturn = false;
+					}
+				}
+				else
+				{
+					if (punchSpeed < 0.0f)
+					{
+						punchSpeed += 0.025 * speed * elapsedSeconds;
+					}
+					else
+					{
+						punchSpeed = 0.0f;
+						punchReturn = false;
+					}
+				}
+			}
+
 			//	Upper Left Hand
 			glPushMatrix();
 			{
@@ -4067,9 +4752,9 @@ void display()
 			glLightfv(GL_LIGHT0, GL_SPECULAR, blackLight);
 		}
 
-		glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, positionLight);
+		glLightfv(GL_LIGHT0, GL_POSITION, positionLight);
 
-		setMaterial(whiteLight, whiteLight, whiteLight);
+		setMaterial(greyLight, greyLight, greyLight);
 
 		glPushMatrix();
 		{
@@ -4077,7 +4762,7 @@ void display()
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, environmentRadius, 0.0f);
-				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 
 				glEnable(GL_TEXTURE_2D);
 				{
@@ -4127,7 +4812,7 @@ void display()
 			glPushMatrix();
 			{
 				glTranslatef(0.0f, -environmentRadius, 0.0f);
-				glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+				glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 
 				glEnable(GL_TEXTURE_2D);
 				{
@@ -4151,8 +4836,7 @@ void display()
 			// Robot Name: Ruin Araneid
 			glPushMatrix();
 			{
-				glTranslatef(0.0f, -environmentRadius + mainRadius * 2, 0.0f);
-				setMaterial(greyLight, greyLight, greyLight);
+				//glTranslatef(0.0f, mainRadius * 2, 0.0f);
 				drawRobot(mainRadius, headRotate, wristJointRadius, fingerTipRadius, palmLength);
 			}
 			glPopMatrix();
@@ -4168,7 +4852,7 @@ void display()
 void setupCamera()
 {
 	glMatrixMode(GL_PROJECTION);
-	glOrtho(-5, 5, -5, 5, 2, 10);
+	glOrtho(-5, 5, -5, 5, 2, 20);
 }
 
 void setupLighting()
